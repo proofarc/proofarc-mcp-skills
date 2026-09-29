@@ -20,7 +20,8 @@ Start a new session afterwards so the skills load.
 | `create-test` | Starts every request. Works out what kind of test (web UI, API, mobile, performance, security) and what it should prove — asks when that's unclear — then hands off. |
 | `project-setup` | Makes sure the project, application, environment and target exist (and a login credential, if needed). Reuses what's there; creates only what's missing. |
 | `webui-test` | Reuses a recent crawl of the site (or crawls it), takes selectors from the crawl, and writes one validated Playwright test per behaviour. |
-| `run-test` | Runs the tests, proves each assertion can fail, and renders a report. |
+| `run-test` | Runs the tests and proves each assertion can fail. |
+| `test-report` | Builds a report of any runs — a built-in layout or one you describe (with a branded starter template) — rendered by the platform. |
 
 ```mermaid
 flowchart LR

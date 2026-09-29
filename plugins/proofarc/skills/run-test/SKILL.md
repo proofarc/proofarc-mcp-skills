@@ -25,12 +25,4 @@ Change the expected value, run, and confirm the test **fails** at that step. The
 
 ## 4. Report
 
-Summarise from the run record (`get_execution_status` → the steps with status and time) — it's always complete. Then, for something to share:
-
-
-`render_report(runs=[…], template=…)` — rendered by the platform in under a second:
-- `ui-full` — every step of every run
-- `ui-summary` — one line per run
-- `ui-failures-only` — only what failed
-
-Pass `include_html=True` only if the user wants the HTML itself.
+Summarise from the run record (`get_execution_status` → the steps with status and time) — that's always complete. For a shareable report, or a layout of the user's own, follow the `test-report` skill.

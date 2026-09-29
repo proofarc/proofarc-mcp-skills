@@ -11,10 +11,10 @@ Start with: the target (from `project-setup`) and the list of behaviours to prov
 
 `ensure_crawl_for_authoring(url, max_depth=1)` returns a stored crawl instantly when one is recent (under `maxAgeHours`, 24) and deep enough; otherwise it crawls (1–2 minutes for ~40 pages). Tell the user which happened — e.g. "Reused a crawl from 40 minutes ago: 18 pages." Pass `force_refresh=True` only if they want the latest version of the site.
 
-**Read the crawl in small pieces — never all of it.** The full crawl is 70–120k characters.
-1. Take only `jobId`, `fresh`, `ageHours` and the stats from `ensure_crawl_for_authoring`. Don't read its page data. If the result is too large to display and gets saved to a file, **don't dig through that file** — move on to step 2.
-2. `get_crawl_results(job_id)` — the page list (url, title, element count), about 8k characters.
-3. `get_crawl_results(job_id, page_url=…)` — **only** for the one or two pages the behaviour touches. Find the elements you need by `semanticName`, `type` and `text`; skip the `namingSuggestion` advice text.
+**Search the crawl — never read all of it.** A full crawl is 70–120k characters; a search for the elements you need is a few hundred.
+1. From `ensure_crawl_for_authoring` take only `jobId`, `fresh`, `ageHours` and the stats. For the page list: `ensure_crawl_for_authoring(url, level="index")` or `get_crawl_results(job_id)` (url, title, element count per page).
+2. Search for exactly the elements the test needs: `get_crawl_results(job_id, page_url=…, text=…, type=…, role=…, stable_only=…, limit=…, fields=[…])` — e.g. `text="Search", type="button"` on the home page returns one element in ~270 characters.
+3. If a result is still too large to display and gets saved to a file, **don't dig through the file** — narrow the search instead.
 
 - Crawls use a real browser (Playwright): single-page apps (React, Angular, Vue) work, and an almost empty HTML page is normal for them.
 - A site behind a login stops at the login page unless the environment has a credential.
