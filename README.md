@@ -5,7 +5,7 @@ Skills that guide your agent through testing with [ProofArc](https://proofarc.ai
 ## Install
 
 ```
-/plugin marketplace add proofarc/claude-plugin
+/plugin marketplace add proofarc/mcp-skills
 /plugin install proofarc@proofarc
 ```
 
