@@ -1,0 +1,6 @@
+{
+  "name": "proofarc",
+  "version": "0.1.0",
+  "description": "Guided testing with ProofArc over MCP. Starts with web UI testing: project onboarding, crawling, test authoring, running and reporting.",
+  "author": { "name": "ProofArc" }
+}

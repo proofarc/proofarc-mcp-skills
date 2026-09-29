@@ -1,0 +1,14 @@
+{
+  "name": "proofarc",
+  "description": "ProofArc skills for testing over MCP.",
+  "owner": {
+    "name": "ProofArc"
+  },
+  "plugins": [
+    {
+      "name": "proofarc",
+      "source": "./plugins/proofarc",
+      "description": "Guided testing with ProofArc over MCP: set up a project, crawl a site, write, run and report tests."
+    }
+  ]
+}
