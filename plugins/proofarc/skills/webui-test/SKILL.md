@@ -9,16 +9,24 @@ Start with: the target (from `project-setup`) and the list of behaviours to prov
 
 ## 1. Crawl — reuse before you wait
 
-`ensure_crawl_for_authoring(url)` returns a stored crawl instantly when one is recent (under `maxAgeHours`, 24) and deep enough; otherwise it crawls (1–2 minutes for ~40 pages). Tell the user which happened — e.g. "Reused a crawl from 40 minutes ago: 40 pages, 162 elements." Pass `force_refresh=True` only if they want the latest version of the site.
+`ensure_crawl_for_authoring(url, max_depth=1)` returns a stored crawl instantly when one is recent (under `maxAgeHours`, 24) and deep enough; otherwise it crawls (1–2 minutes for ~40 pages). Tell the user which happened — e.g. "Reused a crawl from 40 minutes ago: 18 pages." Pass `force_refresh=True` only if they want the latest version of the site.
 
-- Selectors attached to the target: `crawl_by_target(target, max_depth)`, then `get_crawl_digest(project, environment, target)`.
+**Read the crawl in small pieces — never all of it.** The full crawl is 70–120k characters.
+1. Take only `jobId`, `fresh`, `ageHours` and the stats from `ensure_crawl_for_authoring`. Don't read its page data. If the result is too large to display and gets saved to a file, **don't dig through that file** — move on to step 2.
+2. `get_crawl_results(job_id)` — the page list (url, title, element count), about 8k characters.
+3. `get_crawl_results(job_id, page_url=…)` — **only** for the one or two pages the behaviour touches. Find the elements you need by `semanticName`, `type` and `text`; skip the `namingSuggestion` advice text.
+
 - Crawls use a real browser (Playwright): single-page apps (React, Angular, Vue) work, and an almost empty HTML page is normal for them.
 - A site behind a login stops at the login page unless the environment has a credential.
-- A running crawl can't be stopped. Keep `max_depth` at 1–2 unless the user asks for more.
+- A running crawl can't be stopped. Keep `max_depth` at 1 unless the user asks for more.
 
 ## 2. Choose selectors from the crawl
 
-Never guess. Prefer, in order: the site's test hooks (`[data-test=…]`, `[data-testid=…]`), a stable `#id`, `[name=…]`, a role or label. Avoid auto-generated ids such as `#_r_1_` and position-based selectors — they break on the next deploy. Don't hard-code URLs of items the site regenerates (product or order ids).
+Never guess. Use each element's `primarySelector` and `alternates`, preferring a stable `#id`, `[name=…]`, or a role/label (`aria-label`) over a class or text.
+
+**Test hooks aren't in the crawl yet.** The crawler doesn't record `data-test` / `data-testid` attributes (a known bug), so a site that has them looks as if it doesn't. Don't tell the user the site has no test hooks, and don't invent `data-test` selectors. If a key element can only be found by class or text, use that — and say plainly that the test depends on that text or layout.
+
+Avoid auto-generated ids such as `#_r_1_` and position-based selectors — they break on the next deploy. Don't hard-code URLs of items the site regenerates (product or order ids).
 
 ## 3. Write one test per behaviour
 

@@ -7,7 +7,7 @@ description: Run ProofArc tests, prove each assertion can fail, and report the r
 
 ## 1. Run
 
-- **UI test:** `run_ui_test(test, environment, target="<target id, as a string>", drivers=["PLAYWRIGHT"])` returns a `jobId`. Poll `get_execution_status(execution_id=<jobId>, kind="ui_job")` until it's `COMPLETED`.
+- **UI test:** `run_ui_test(test, environment, target="<target id, as a string>", drivers=["PLAYWRIGHT"], wait=True)` waits for the result. Without `wait`, poll `get_execution_status(execution_id=<jobId>, kind="ui_job")` until it's `COMPLETED`.
 - **API scenario:** `execute_scenario(scenario, environment)`; poll `get_execution_status(execution_id=<executionId>, kind="api_scenario")`.
 - **Several tests:** tag them (e.g. `suite:search`), then `run_by_tag(tags, project, environment, dry_run=True)` to see what would run, then without `dry_run`. For UI tests this works when the environment has one website target; with several, run each test with its `target`.
 - Always pass `target` for UI tests when the environment has more than one website target.
@@ -24,6 +24,9 @@ Change the expected value, run, and confirm the test **fails** at that step. The
 - An error that names a fix (missing credential, no driver, which target) — apply it and run again; see `webui-test/reference.md`.
 
 ## 4. Report
+
+Summarise from the run record (`get_execution_status` → the steps with status and time) — it's always complete. Then, for something to share:
+
 
 `render_report(runs=[…], template=…)` — rendered by the platform in under a second:
 - `ui-full` — every step of every run

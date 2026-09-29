@@ -13,6 +13,7 @@ A test needs four things: a **project**, an **application**, an **environment**,
 - For an existing project, `get_project_setup_status(project)` says what's done and what's missing.
 - `list_project_applications(project)`, `list_environments(project)`, `list_targets(environment)` show the pieces.
 - A target for the same URL already in the environment means the site is set up there — use it.
+- **Shared environments:** if that environment also holds targets for *other* sites, don't link it into a new project — the project would inherit those sites, and running tests by tag there can't pick a target. Reuse the application, but create a project-specific environment (e.g. `skill-trial-toolshop`) with its own target for the same URL, or ask the user which they prefer.
 
 ## 2. Create what's missing — in this order
 
