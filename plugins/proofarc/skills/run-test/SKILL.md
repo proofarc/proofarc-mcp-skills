@@ -10,7 +10,9 @@ description: Run ProofArc tests, prove each assertion can fail, and report the r
 - **UI test:** `run_ui_test(test, environment, target="<target id, as a string>", drivers=["PLAYWRIGHT"], wait=True)` waits for the result. Without `wait`, poll `get_execution_status(execution_id=<jobId>, kind="ui_job")` until it's `COMPLETED`.
 - **API scenario:** `execute_scenario(scenario, environment)`; poll `get_execution_status(execution_id=<executionId>, kind="api_scenario")`.
 - **Several tests:** tag them (e.g. `suite:search`), then `run_by_tag(tags, project, environment, dry_run=True)` to see what would run, then without `dry_run`. For UI tests this works when the environment has one website target; with several, run each test with its `target`.
+- **Mobile test:** `run_mobile_test(mobile_test, environment, credential_tag, wait=True)`; read the result with `get_mobile_test_executions(mobile_test)` (`get_execution_status` doesn't take mobile runs).
 - Always pass `target` for UI tests when the environment has more than one website target.
+- **Which login it signs in as:** the one named on the run → saved on the test → set on the target → the environment default. Name it (`credential_tag=`) whenever the environment has more than one. Refusals, retries and "no login" runs: `logins.md`.
 
 ## 2. Prove the assertion once
 
@@ -22,6 +24,7 @@ Change the expected value, run, and confirm the test **fails** at that step. The
 - **Red:** it's a finding. Report the failing step and its message. **Never** change the expectation to make it pass.
 - A step failing in under a second with `ERR_NAME_NOT_RESOLVED at https://site.compath` means a missing slash — `{{baseUrl}}/path`.
 - An error that names a fix (missing credential, no driver, which target) — apply it and run again; see `webui-test/reference.md`.
+- `CREDENTIAL_AMBIGUOUS` or `CREDENTIAL_TAG_NOT_FOUND` — the run was refused before anything ran; it's a setup question, not a test result. See `logins.md`.
 
 ## 4. Report
 

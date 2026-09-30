@@ -20,14 +20,17 @@ A test needs four things: a **project**, an **application**, an **environment**,
 **Project before application**: an application can't be created without a project.
 
 1. **Project** — `create_project(name, description)`.
-2. **Application** — `create_application(project, name, application_type, app_tag, auth_requirement)`, then **always** `link_application_to_project(application, project)`; it doesn't show on the project until linked.
-   - `application_type`: `WEB_APP` for a website, `REST_SERVICE` for an API.
+2. **Application** — `create_application(project, name, app_tag, application_interfaces, auth_requirement)`, then **always** `link_application_to_project(application, project)`; it doesn't show on the project until linked.
+   - `application_interfaces`: what the app exposes — `["WEB_UI"]` for a website, `["REST"]` for an API (also `GRAPHQL`, `SOAP`, `GRPC`, `MESSAGING`, `WEBSOCKET`, `MOBILE_UI`, …). Without it the call is refused.
    - `app_tag`: a short slug (`toolshop-web`) that connects the application, its target and its tests.
    - Application names are shared across projects — an existing name links that application (`linkedExisting: true`). Tell the user.
 3. **Environment** — `create_environment(name, auth_requirement, project)`, then `link_environment(environment, project)`.
    - Environment names are shared across projects. Use a specific name (`toolshop-staging`); don't reuse `development` or `production` unless the user means that shared one.
    - `auth_requirement`: `PUBLIC` if anyone can open the site, `AUTHENTICATED` if tests log in.
-4. **Credential** (login needed only) — ask the user for it, or ask them to add it, then `add_environment_credential(environment, tag, username, password, isDefault=true)`. Tests refer to it by tag only. Never write a login into a test; never borrow one from another environment.
+4. **Credential** (login needed only) — ask the user for it, or ask them to add it, then `add_environment_credential(environment, tag, username, password, is_default=true)`. Tests refer to it by tag only. Never write a login into a test; never borrow one from another environment.
+   - **Several logins in one environment:** mark exactly one as default, or every run must name its login — otherwise runs are refused with `CREDENTIAL_AMBIGUOUS`. Which login a run uses: see `run-test/logins.md`.
+   - **Login for a website target** (used by suites and crawls when nothing more specific is named): `set_target_auth(target, auth_config={"authType": "UI_LOGIN", "credentialTag": "<tag>"})`. `authType` is required; without it the call is refused.
+   - An API environment needs the login call once: `set_environment_auth_endpoint(environment, login_endpoint="/auth/login", auth_type="BEARER", token_json_path="$.accessToken")` (adjust to the app).
 5. **Target** — `add_target(environment, name, target_type, base_url, app_tag, application)`.
    - `target_type` matches the application type.
    - `base_url` without a trailing slash.
