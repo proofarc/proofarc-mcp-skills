@@ -42,6 +42,7 @@ Use it for "wrong password → 401" steps.
 - Only jobs whose **status** is FAILED, ERROR or CANCELLED can be retried. A test that failed a check is `COMPLETED` with outcome FAILED, and retrying it gives 409.
 - A retry uses the same login as the original run. If that login is gone or switched off, you get 400 `CREDENTIAL_TAG_NOT_FOUND` ("it ran as login 'X', which no longer exists or is switched off"). Start a new run and pick a login.
 - An unknown job gives 404.
+- In the UI, the **Retry Job** button appears only when the job status is FAILED, which normal runs don't reach (#456). Retry through the API instead.
 
 ## Proving a run used the right login
 
