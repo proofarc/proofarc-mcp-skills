@@ -23,11 +23,14 @@ name: "users — create, read, delete"
 baseUrl: "{{baseUrl}}"
 appTag: user-service          # the application's app tag
 credentialTag: api-admin      # the login this scenario signs in as (omit for a public API)
+hooks:
+  before:
+    - script: "suffix:randomString(8)"   # a new value on every run
 steps:
   - name: create
     method: POST
     path: /api/users
-    body: {"username": "qa_probe_users_1", "email": "qa_probe_users_1@example.com"}
+    body: {"username": "qa_{{suffix}}", "email": "qa_{{suffix}}@example.com"}
     expect: [201]
     extract:
       _id: $.id               # capture a value for later steps
@@ -46,7 +49,11 @@ steps:
   - Name the login once with `credentialTag:`.
   - Never write a username, password or token into a step.
   - A step that needs the login's own values uses `{{username}}` / `{{password}}`.
-- `{{$uuid}}` (Postman syntax) is **not** supported. It is refused by validation. Use a distinctive fixed test value, as above, and clean it up.
+- **Unique values:**
+  - `{{$uuid}}` (Postman syntax) is **not** supported and is refused by validation.
+  - Declare a generated value in `hooks.before` as `- script: "name:generator"`, as above.
+  - Generators: `uuid`, `timestamp`, `isoTimestamp`, `randomInt(min,max)`, `randomString(length)`, `env(NAME)`.
+  - The `script:` key is required. The validator's hint shows the form without it, which it then rejects.
 - Clean up what you create (the `delete` step above). Read-only is the default; write steps only when the user asked for them.
 - **Negative checks (401, 403, 404):**
   - Probe ids that don't exist, never real records.
