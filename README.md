@@ -6,7 +6,7 @@ Skills that guide your agent through testing with [ProofArc](https://proofarc.ai
 
 ```
 /plugin marketplace add proofarc/proofarc-mcp-skills
-/plugin install proofarc@proofarc
+/plugin install proofarc-skills@proofarc
 ```
 
 Start a new session afterwards so the skills load.
@@ -55,8 +55,8 @@ flowchart LR
 
 ```
 .claude-plugin/marketplace.json        # this repo is a marketplace
-plugins/proofarc/.claude-plugin/plugin.json
-plugins/proofarc/skills/<skill>/SKILL.md
+plugins/proofarc-skills/.claude-plugin/plugin.json
+plugins/proofarc-skills/skills/<skill>/SKILL.md
 ```
 
-Check changes with `claude plugin validate .` and `claude plugin validate ./plugins/proofarc`.
+Check changes with `claude plugin validate .` and `claude plugin validate ./plugins/proofarc-skills`.

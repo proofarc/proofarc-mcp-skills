@@ -6,9 +6,9 @@
   },
   "plugins": [
     {
-      "name": "proofarc",
-      "source": "./plugins/proofarc",
-      "description": "Guided testing with ProofArc over MCP: set up a project, crawl a site, write, run and report tests."
+      "name": "proofarc-skills",
+      "source": "./plugins/proofarc-skills",
+      "description": "Guided testing with ProofArc over MCP: connect, set up a project, write web UI, API, mobile and performance tests, run them and report."
     }
   ]
 }
