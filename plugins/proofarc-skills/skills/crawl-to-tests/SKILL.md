@@ -20,17 +20,17 @@ Web UI only. We automate an **application**, so start there, then the **project*
 
 ## 1. Which application: shown by its address
 
-People know their app by its address, not by its ProofArc name. Make two calls at once:
+People know their app by its address, not by its ProofArc name. These are MCP tools: call them directly as tools, not through the shell. Make two calls at once:
 - `list_applications`
 - `list_targets()` with no arguments. It returns **every** target with its `applicationId`, `environmentName`, `targetType` and `baseUrl`, in under a second.
 
-Join them, and keep the applications that have a `WEB_APP` target (or a web type or interface). Show each one with its address or addresses, and the environments where they're used:
+Join them, and keep the applications that have a `WEB_APP` target (or a web type or interface). Show **the application's name as it is**, then its **target host**, then the **environments that have that target**. Those environments are where it can run:
 
 > Which app do you want to test?
-> 1. **https://practicesoftwaretesting.com**: Toolshop web (trial), env `toolshop-trial`
-> 2. **https://user-service-ui-devdemo.proofarc.ai**: user-service-ui, envs `production`, `qa454-lite`
-> 3. **https://www.coppel.com**: coppel, env `dev`
-> 4. A different address
+> 1. **Toolshop web (trial)**: `practicesoftwaretesting.com`, env `toolshop-trial`
+> 2. **user-service-ui**: `user-service-ui-devdemo.proofarc.ai`, envs `production`, `qa454-lite`
+> 3. **coppel**: `www.coppel.com`, env `dev`
+> 4. A different app or address
 >
 > Or just paste the address.
 
