@@ -9,6 +9,11 @@ Web UI only. We automate an **application**, so start there, then the **project*
 
 **Every reply ends with numbered choices** the user can answer with a number. If the `AskUserQuestion` tool is available, use it. Mark a sensible default *(recommended)*. Ask one thing per reply.
 
+**ProofArc not connected?** A "failed to connect" notice at the start of a session isn't final: the server may only have been unreachable for a moment. Before telling the user anything is unavailable, check whether any `mcp__proofarc…` tools are listed.
+- If none are, ask the user to type `/mcp`, pick their ProofArc server and choose **Reconnect**, then continue.
+- If it answers 401, use the `connect` skill.
+- Ignore a failing `claude.ai proofarc` connector when another ProofArc server works.
+
 **Which ProofArc first.** If more than one ProofArc server is connected (tool names `mcp__<server>__…`), ask which instance to use before anything else, and use only that server's tools from then on. With one server, use it without asking.
 
 **Load the tools in one search at the start**, by full name: `select:mcp__<server>__list_applications,mcp__<server>__list_application_projects,…` for `list_applications`, `list_application_projects`, `list_environments`, `list_targets`, `get_crawl_digest`, `crawl_by_target`, `advise_ui`, `find_playbooks`, `get_playbook`, `validate_ui_test_yaml`, `create_ui_test_from_yaml`, `run_ui_test`, `get_execution_status`. Short names without the prefix don't match.
