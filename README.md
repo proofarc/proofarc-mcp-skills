@@ -65,3 +65,7 @@ plugins/proofarc-skills/skills/<skill>/SKILL.md
 ```
 
 Check changes with `claude plugin validate .` and `claude plugin validate ./plugins/proofarc-skills`.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

@@ -4,5 +4,6 @@
   "description": "Guided testing with ProofArc over MCP: connect, project setup, web UI, API, mobile and performance tests, running and reporting.",
   "author": {
     "name": "ProofArc"
-  }
+  },
+  "license": "MIT"
 }
