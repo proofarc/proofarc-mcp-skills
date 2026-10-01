@@ -15,9 +15,10 @@ ProofArc's MCP server is at `https://<your-instance>/mcp`. It accepts a login to
 
 ## Connect, or reconnect
 
-Run this in a terminal. The user types the password; it isn't shown or saved anywhere. Set `BASE` to your instance's address, and use a different `NAME` for each instance.
+Save this as `connect-proofarc.sh` and run it with `bash connect-proofarc.sh`. Use bash: zsh's `read -p` means something else. The user types the password at the prompt; it isn't shown or saved anywhere. Set `BASE` to your instance's address, and use a different `NAME` for each instance.
 
 ```bash
+#!/usr/bin/env bash
 BASE="https://ui-<instance>.proofarc.ai"; NAME="proofarc-<instance>"
 read -r -p "ProofArc username: " U; read -rs -p "ProofArc password: " P; echo
 TOKEN=$(U="$U" P="$P" python3 -c 'import json,os,sys,urllib.request as r
