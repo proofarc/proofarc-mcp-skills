@@ -16,14 +16,29 @@ Web UI only. We automate an **application**, so start there, then the **project*
 
 **Which ProofArc first.** If more than one ProofArc server is connected (tool names `mcp__<server>__…`), ask which instance to use before anything else, and use only that server's tools from then on. With one server, use it without asking.
 
-**Load the tools in one search at the start**, by full name: `select:mcp__<server>__list_applications,mcp__<server>__list_application_projects,…` for `list_applications`, `list_application_projects`, `list_environments`, `list_targets`, `get_crawl_digest`, `crawl_by_target`, `advise_ui`, `find_playbooks`, `get_playbook`, `validate_ui_test_yaml`, `create_ui_test_from_yaml`, `run_ui_test`, `get_execution_status`. Short names without the prefix don't match.
+**Load the tools in one search at the start** (note that `list_targets` is called with no arguments in step 1), by full name: `select:mcp__<server>__list_applications,mcp__<server>__list_application_projects,…` for `list_applications`, `list_application_projects`, `list_environments`, `list_targets`, `get_crawl_digest`, `crawl_by_target`, `advise_ui`, `find_playbooks`, `get_playbook`, `validate_ui_test_yaml`, `create_ui_test_from_yaml`, `run_ui_test`, `get_execution_status`. Short names without the prefix don't match.
 
-## 1. Which application
+## 1. Which application: shown by its address
 
-- `list_applications`, then keep the ones with a web interface: `applicationInterfaces` contains `WEB_UI`, or `applicationType` is `WEB_APP`. Also keep any application **with no type**; it may still be a web app (some are saved without one). Ask about those rather than hiding them.
-- **The user gave a site address or a run link `…/scans/<n>`:** read the site from it. For a run link, call `get_execution_status(execution_id="<n>", kind="ui_job")` and take `items[0].target`; pass the number as a string. Recommend the application whose targets point at that host.
-- Offer the applications as a numbered list, plus *"New application"*.
-- New application: hand off to `project-setup`. It asks before creating anything.
+People know their app by its address, not by its ProofArc name. Make two calls at once:
+- `list_applications`
+- `list_targets()` with no arguments. It returns **every** target with its `applicationId`, `environmentName`, `targetType` and `baseUrl`, in under a second.
+
+Join them, and keep the applications that have a `WEB_APP` target (or a web type or interface). Show each one with its address or addresses, and the environments where they're used:
+
+> Which app do you want to test?
+> 1. **https://practicesoftwaretesting.com**: Toolshop web (trial), env `toolshop-trial`
+> 2. **https://user-service-ui-devdemo.proofarc.ai**: user-service-ui, envs `production`, `qa454-lite`
+> 3. **https://www.coppel.com**: coppel, env `dev`
+> 4. A different address
+>
+> Or just paste the address.
+
+- **The user pastes an address**, or gave one earlier, or a run link `…/scans/<n>`: match it against the targets' `baseUrl` by host, ignoring `www.` and any trailing `/`.
+  - For a run link, call `get_execution_status(execution_id="<n>", kind="ui_job")` and use `items[0].target`; send the number as a string.
+  - One match: confirm it in a line. Several (the same site in several applications): show only those.
+- **No match:** it's a new application. Hand off to `project-setup`, which asks before creating anything.
+- A web target with no application (`applicationId` empty) is listed under its address too, marked *"not linked to an application"*.
 
 ## 2. Which project
 
