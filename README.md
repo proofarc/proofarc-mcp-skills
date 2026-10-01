@@ -2,21 +2,34 @@
 
 Skills that guide your agent through testing with [ProofArc](https://proofarc.ai) over MCP — from "I want to create a test" to a green, re-runnable test and a report. Written for people **using** ProofArc, not for developing it.
 
-## Install
+## Get started
+
+**You need:**
+- [Claude Code](https://claude.com/claude-code)
+- your ProofArc address, for example `https://ui-<company>.proofarc.ai`
+- a ProofArc username and password with the ANALYST role; your ProofArc contact sends these
+- macOS or Linux with `bash` and `python3` (on Windows, use WSL or Git Bash)
+
+**1. Install the plugin.** In Claude Code, type:
 
 ```
 /plugin marketplace add proofarc/proofarc-mcp-skills
 /plugin install proofarc-skills@proofarc
 ```
 
-Start a new session afterwards so the skills load.
+**2. Connect to your ProofArc.** Ask Claude *"connect me to ProofArc"*. It gives you a command like this one to run **in your own terminal**:
 
-**Before you start, you need:**
-- your ProofArc instance's address, for example `https://ui-<company>.proofarc.ai`
-- a ProofArc user with the ANALYST role; ask your ProofArc admin
-- macOS or Linux with `bash` and `python3` (on Windows, use WSL or Git Bash)
+```
+bash <path>/connect-proofarc.sh https://ui-<company>.proofarc.ai
+```
 
-**You also need the ProofArc MCP server connected** (`/mcp` should list it). Ask *"connect me to ProofArc"* and the `connect` skill walks you through it.
+Enter your username and password when asked. The password isn't shown or saved.
+
+**3. Restart Claude Code**, then ask *"list my ProofArc projects"*. Seeing your projects means you're ready.
+
+**Later:**
+- If ProofArc tools start answering *401 / unauthorized*, run the connect command again and restart Claude Code.
+- To get skill updates, run `/plugin marketplace update proofarc` in Claude Code and restart it.
 
 ## Skills
 
@@ -56,7 +69,7 @@ flowchart LR
 - Every assertion is made to fail once before it's trusted.
 - A red test is a finding: the skills report it and never loosen the test to make it pass.
 
-## Layout
+## For maintainers
 
 ```
 .claude-plugin/marketplace.json        # this repo is a marketplace
