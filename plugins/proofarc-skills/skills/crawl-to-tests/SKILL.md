@@ -15,7 +15,7 @@ Web UI only. We automate an **application**, so start there, then the **project*
 
 ## 1. Which application
 
-- `list_applications`, then keep the ones with a web interface (`applicationInterfaces` contains `WEB_UI`, or `applicationType` is `WEB_APP`).
+- `list_applications`, then keep the ones with a web interface: `applicationInterfaces` contains `WEB_UI`, or `applicationType` is `WEB_APP`. Also keep any application **with no type**; it may still be a web app (some are saved without one). Ask about those rather than hiding them.
 - **The user gave a site address or a run link `…/scans/<n>`:** read the site from it. For a run link, call `get_execution_status(execution_id="<n>", kind="ui_job")` and take `items[0].target`; pass the number as a string. Recommend the application whose targets point at that host.
 - Offer the applications as a numbered list, plus *"New application"*.
 - New application: hand off to `project-setup`. It asks before creating anything.
