@@ -86,21 +86,45 @@ One screen. For example, for Toolshop:
 > - C. Wrong password → error
 > - D. Contact form with missing fields → required errors
 >
-> **Tests I suggest:**
-> 1. Main pages open with the right title *(recommended to start)*
-> 2. Search "pliers" shows Pliers (B)
-> 3. Product page shows *Add to cart* (A, read-only)
-> 4. Wrong password shows an error (C, creates nothing)
-> 5. Contact form shows required-field errors (D, sends nothing)
-> 6. Sort by price changes the order
+> **Suggested set: 5 tests, no overlap.**
+> 1. **Smoke**: home, 4 categories, contact and login each open with the right title *(one test, every main page once; recommended to start)*
+> 2. **Journey A**: category → product → *Add to cart* → the cart count goes to 1 *(changes only this browser's cart)*
+> 3. **Search**: "pliers" lists Pliers *(home page search)*
+> 4. **Sort**: on a category page, Price (Low–High) puts the cheapest first
+> 5. **Contact validation**: send empty → each required field shows its error *(sends nothing)*
 >
-> Pick tests (`1,2`) or a scenario (`A`), or type `find <text>` to explore.
+> **Edge cases the crawl supports:** empty search (the search box is there; I'll ask what it should show). Login is not covered: the crawl didn't go behind it.
+>
+> Pick tests (`1,3`), take the whole set (`all`), or type `find <text>` to explore.
+
+### How to build the suggested set
+
+Work through this checklist **before** writing the list. Weaker models skip it, so do every step.
+
+1. **One page, one test per behaviour.** List the behaviours the crawl shows: pages opening, search, sort or filter, each form, each journey. Each gets exactly one test.
+   - Never suggest two tests that only load the same page.
+   - "Page opens with the right title" is never a test of its own. All of those go into **one smoke test** that visits every main page once.
+2. **Journeys are tests too.** A scenario that crosses pages (browse → product → add to cart) is one test with several steps. Don't also suggest each of its pages separately.
+3. **Each item says what it covers** (pages, feature) and **what it changes**: *nothing*, *this browser's cart only*, or *sends data*. Read-only and browser-only items come first. Never offer purchases, deletions or account creation unless the user asks.
+4. **Edge cases only where the crawl shows the input exists.**
+   - An empty search is fine if there's a search box. An invalid email is fine if there's an email field.
+   - **Never** suggest a case the crawl gives no sign of, such as "out of stock" or "payment declined". Check with `get_crawl_digest(target, text="<word>")` first. If it finds nothing, don't suggest it.
+   - When the expected result isn't in the crawl (what an empty search shows), **ask the user**, or run the test once, show the result, and ask *"Is this right?"* before asserting it.
+5. **Five or six items at most**, deduplicated. If more behaviours exist, say how many and offer `more`.
+6. **Say what the crawl didn't reach**, such as login-only pages or pages past `max_depth`, and offer a deeper crawl or a crawl with a login.
+
+### When the user asks to improve or trim the set
+
+Apply the same checklist to the list you suggested, and answer with **the changed list itself**, not advice:
+- merge overlaps
+- fold title checks into the smoke test
+- drop anything the crawl can't support
+
+Then ask *"Use this set? 1. Yes 2. Change something"*.
 
 **Rules:**
 - **Every claim comes from the crawl or `advise_ui`.** Say "looks like" for anything you infer.
-- **Scenarios cross pages; tests are single checks.** Ask whether a scenario should be one test or several.
-- **Read-only first.** Label anything that sends data. Never offer purchases or deletions.
-- **Six tests at most per list.** Say what the crawl didn't reach: login-only pages, or pages past `max_depth`.
+- If a scenario could be one test or several, ask which.
 
 ## 6. Commands, any time
 
