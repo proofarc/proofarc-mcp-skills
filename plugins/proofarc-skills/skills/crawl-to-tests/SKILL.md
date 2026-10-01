@@ -54,6 +54,11 @@ Join them, and keep the applications that have a `WEB_APP` target (or a web type
   > 3. New environment
 - New environment, or no web target: hand off to `project-setup`.
 
+**Logins, asked now and not later.** If the app has a login page or the crawl hit a login wall, and the chosen environment has **no login saved**, say so here:
+> This environment has no login saved, so tests behind the login can't run yet. 1. Add one now (you give the username and password; they're saved in ProofArc, not in tests) 2. Only build tests that don't need a login
+
+For option 1, use `project-setup` to add the login, then `set_target_auth` (`UI_LOGIN`) so the crawl can get behind it. Never invent or reuse a password.
+
 Confirm in one line: *"Working on **Toolshop web**, project **X**, environment **Y**, target `https://…`."*
 The user can type `where` at any time to change this.
 
@@ -138,6 +143,7 @@ All of these read the target's stored crawl with `get_crawl_digest(target, …)`
 | `explain` | the step 4 results you already have | page groups with counts, forms by page, testability examples |
 | `test <screen or idea>` | | 2–3 test ideas for it |
 | `where` | | go back to steps 1–3 |
+| `fixlist` | `advise_ui(target, full=true)` | a list for the developers: each control with no stable id, its page, and the `data-testid` to add, ranked by how many tests would use it |
 | `more` / `done` | | next suggestions / finish |
 
 ## 7. Settle each chosen test (one question per reply)
@@ -155,6 +161,9 @@ All of these read the target's stored crawl with `get_crawl_digest(target, …)`
 ## 8. Build, run, prove
 
 **Selectors:**
+- **No record ids in a test.** A URL or selector containing an id from the data (`/product/01M3FZ5CD4BXK3PFN6RCYZ3SXY`, `#order-4711`) breaks when the data changes. Get to the record **through the UI**: open the listing, then click the item by its visible name (`a:has-text("Combination Pliers")`). Its name is unique and readable. A bare pattern like `a[href^="/product/"]` matches every product, and clicks only the first one on Playwright, which differs from WebDriver.
+- **Never use framework state or generated classes**: `ng-untouched`, `ng-pristine`, `ng-valid`, `is-active`, `Mui-focused`, or hashed names like `css-1x2y3z`. They change as the user interacts or with every build. `form.ng-untouched` stops matching the moment a field is touched.
+- **Order of preference:** `#id` → `[name="…"]` → `[aria-label="…"]` → `a[href="/exact/path"]` (fixed routes only) → visible text. Say in the plan when a step depends on text.
 - Only use selectors from the crawl. Prefer unique attributes: `#id`, `input[name="…"]`, `a[href="/exact/path"]`.
 - The crawl's `sel` is often a shared class that matches many elements; don't use that.
 - Never invent `data-test` selectors.
@@ -206,4 +215,4 @@ Then offer the remaining tests, `run all` (by the `from-crawl` tag), `report` (h
 
 ## 9. Done
 
-One line: the tests created and passed, the project and environment, and the tag `from-crawl`.
+One line: the tests created and passed, the project and environment, and the tag `from-crawl`. If testability was below 70, offer `fixlist`: adding `data-testid` to those controls makes every test on them sturdier.
