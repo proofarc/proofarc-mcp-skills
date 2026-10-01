@@ -8,7 +8,7 @@ description: Interactive guide from a finished ProofArc crawl to working UI test
 The crawl already knows the site: its pages, forms, inputs and buttons. Use it to explain the app, suggest what to test, and answer questions about it. The user chooses; you build.
 
 **Pace:** the first answer comes within about 20 seconds.
-- **Load tools in one go.** Use a single tool search for `get_execution_status`, `get_crawl_results`, `ensure_crawl_for_authoring`, `validate_ui_test_yaml`, `create_ui_test_from_yaml`, `run_ui_test`, `get_project_setup_status`.
+- **Load tools in one go.** Use a single tool search for `get_execution_status`, `get_crawl_results`, `ensure_crawl_for_authoring`, `validate_ui_test_yaml`, `create_ui_test_from_yaml`, `run_ui_test`, `get_project_setup_status`, `list_projects`, `list_environments`, `list_targets`.
 - **Then make at most three calls** before speaking: the crawl id, the page list, the forms.
 - **Read element details only for what the user picks or asks about.**
 
