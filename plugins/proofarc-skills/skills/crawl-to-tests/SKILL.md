@@ -109,7 +109,7 @@ All of these read the target's stored crawl with `get_crawl_digest(target, …)`
    - Then `get_playbook(id)` and keep to its beats and gotchas.
 2. **Fetch just the elements it needs:** `get_crawl_digest(target, page=…, type=…, text=…)`.
 3. **Ask the one open detail, as options.** For example: *"Search for which product? 1. Pliers (on the site) 2. Your own"*.
-4. **Show the plan in plain words, then confirm:**
+4. **Show the plan in plain words, not YAML, then confirm.** Run `validate_ui_test_yaml` on the draft before showing the plan, so you never offer a test the platform would refuse:
    > *Search finds pliers*: open home → type `pliers` in **Search** → press **Search** → wait → check **Pliers** appears.
    > 1. Create it 2. Change something
 
@@ -119,6 +119,33 @@ All of these read the target's stored crawl with `get_crawl_digest(target, …)`
 - Only use selectors from the crawl. Prefer unique attributes: `#id`, `input[name="…"]`, `a[href="/exact/path"]`.
 - The crawl's `sel` is often a shared class that matches many elements; don't use that.
 - Never invent `data-test` selectors.
+
+**Addresses: always `{{baseUrl}}`, never the site's URL.**
+- Write `url: "{{baseUrl}}/category/hand-tools"`, not `https://practicesoftwaretesting.com/category/hand-tools`.
+- Put the application's app tag at the top (`appTag: "<appTag>"`). Then `{{baseUrl}}` resolves to the environment's target at run time, and the same test runs on dev, staging or prod unchanged.
+- `{{baseUrl}}` has no trailing slash, so always write `{{baseUrl}}/path`.
+
+**Parameters each action really takes** (the validator refuses the wrong ones):
+- `NAVIGATE_TO` takes `url:`.
+- Waits take `timeout:` in **milliseconds** (`10000`). A `value: "5"` on a wait does nothing and falls back to 30 s.
+- `VALIDATE_TITLE`, `VALIDATE_TEXT` and `WAIT_FOR_TEXT` take `expectedText:`. `value:` is only for typing (`SEND_KEYS`).
+- **Wait for something on the page you navigated to**, such as its form, list or heading from the crawl, not the site's header or menu. A header element is on every page, so waiting for it proves nothing.
+
+Example (validated):
+```yaml
+name: "Main pages open with the right title"
+appTag: "toolshop-web-trial"
+steps:
+- action: NAVIGATE_TO
+  url: "{{baseUrl}}/category/hand-tools"
+- action: WAIT_FOR_VISIBLE
+  selector: '[aria-label="Sort products"]'
+  timeout: 10000
+- action: VALIDATE_TITLE
+  expectedText: "Hand Tools - Practice Software Testing - Toolshop - v5.0"
+- action: TAKE_SCREENSHOT
+  filename: "hand-tools"
+```
 
 **Steps:**
 - Navigate, wait, act, wait, then assert the **outcome**, not just a click.
