@@ -61,7 +61,7 @@ Keep it to one screen. The shape, for a real crawl:
 > 5. Contact form shows required-field errors (scenario D, sends nothing)
 > 6. Product page has *Add to cart* (scenario A, read-only)
 >
-> Pick tests (e.g. `1,2`) or a scenario (`A`), or type `find <text>` to explore.
+> Pick tests (e.g. `1,2`) or a scenario (`A`), or type `find <text>` to explore. Before building, I'll ask which project and environment to use.
 
 **Rules:**
 - **Claims about the app come only from the crawl.** Say "looks like" for anything you infer. Don't invent features the crawl didn't see.
@@ -79,24 +79,42 @@ Keep it to one screen. The shape, for a real crawl:
 | `explain` | Repeat the summary and what the app looks like, in more detail: page groups with their counts, and which forms appear on which pages. |
 | `test <page, element or idea>` | Suggest 2–3 tests for that screen or element, as a numbered list. |
 | `more` | The next suggestions. |
-| `done` | Finish (step 7). |
+| `where` | Change the project or environment (step 5). |
+| `done` | Finish (step 8). |
 
 Examples:
 - `find cart` lists *Add to cart* (`#btn-add-to-cart`, on the product pages).
 - `find rent` lists `/rentals` and its rental pages.
 - `show contact` lists the contact form's fields and its Send button.
 
-## 5. Settle each chosen test (one question per reply)
+## 5. Where the tests go: ask before building anything
+
+The summary only reads the crawl. Creating tests needs a **project** and an **environment**, and the user chooses both. Ask the moment they pick their first test, one question per reply, and never choose one silently.
+
+1. **Project:** `list_projects`. Offer the projects as numbered options, plus *"New project"*. Recommend one only if the user named it earlier.
+2. **Environment:**
+   - `list_environments(project)`, then `list_targets(environment)` for each one.
+   - Mark the environments that already have a **website target for the crawled site** (same host as `items[0].target`). Recommend one of those.
+   - Show each environment's name, its target address, and whether it has a login saved:
+     > Which environment should the tests run in?
+     > 1. **staging-ui**: target `https://shop.example.com`, login `qa-user` *(recommended, it targets the crawled site)*
+     > 2. **prod-smoke**: target `https://shop.example.com`, no login
+     > 3. New environment for this site
+   - Option 3, or no environment with a matching target: hand off to `project-setup`. It creates the environment, application and target, and asks before creating them.
+3. **Confirm in one line** before the first test: *"Tests go to project **X**, environment **Y**, target `https://…`."*
+
+Ask once per session; every later test reuses the choice. The user can type `where` at any time to change it.
+
+## 6. Settle each chosen test (one question per reply)
 
 1. **Fetch only what it needs:** `get_crawl_results(job_id, page_url=<full url>, type=…, text=…)`.
 2. **Ask the one open detail, as options.** For example: *"Search for which product? 1. Pliers (on the site) 2. Hammer 3. Your own"*.
 3. **Show the plan in plain words, then confirm:**
    > *Search finds pliers*: open the home page → type `pliers` in **Search** → press **Search** → check **Pliers** appears.
    > 1. Create it 2. Change something
-4. **Setup happens once, before the first test.** Check it with `get_project_setup_status`, and use `project-setup` for anything missing.
-5. **Logins** come from a login saved in the environment (`{{username}}`/`{{password}}`). If there isn't one, ask the user to provide it. Never type or invent one.
+4. **Logins** come from a login saved in the environment (`{{username}}`/`{{password}}`). If there isn't one, ask the user to provide it. Never type or invent one.
 
-## 6. Build, run, prove
+## 7. Build, run, prove
 
 1. Use selectors **only from crawl results**. Don't invent `data-test` selectors.
 2. `validate_ui_test_yaml`, then `create_ui_test_from_yaml(..., tags="from-crawl")`.
@@ -106,6 +124,6 @@ Examples:
 
 Then offer the remaining suggestions, `run all` (by the `from-crawl` tag), `report` (hand off to `test-report`), or `done`.
 
-## 7. Done
+## 8. Done
 
 One line: how many tests were created and how many passed, and the tag that finds them (`from-crawl`).
