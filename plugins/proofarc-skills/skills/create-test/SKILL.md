@@ -48,7 +48,7 @@ Note whether the behaviour **needs a login**. If it does, the setup needs a cred
 
 | Kind | Next |
 |---|---|
-| Web UI | `project-setup` (interface `WEB_UI`) → `webui-test` → `run-test` |
+| Web UI | `project-setup` (interface `WEB_UI`) → `webui-test` → `run-test`. If the user has a crawl or a run link, or doesn't know what to test, use `crawl-to-tests` instead. |
 | API | `project-setup` (interface `REST`) → `api-test` → `run-test` |
 | Mobile | `project-setup` (interface `MOBILE_UI`) → `mobile-test` (it runs the test too) |
 | Performance | an API scenario that passes (`api-test` if there isn't one) → `performance-test` |

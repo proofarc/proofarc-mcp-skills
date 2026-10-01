@@ -37,6 +37,7 @@ Enter your username and password when asked. The password isn't shown or saved.
 |---|---|
 | `create-test` | Starts every request. Works out what kind of test (web UI, API, mobile, performance, security) and what it should prove — asks when that's unclear — then hands off. |
 | `project-setup` | Makes sure the project, application, environment and target exist (and a login credential, if needed). Reuses what's there; creates only what's missing. |
+| `crawl-to-tests` | Interactive: reads a finished crawl (or a run link like `…/scans/149`), suggests tests the site supports, and walks you through building them one choice at a time. |
 | `webui-test` | Reuses a recent crawl of the site (or crawls it), takes selectors from the crawl, and writes one validated Playwright test per behaviour. |
 | `api-test` | Finds the API spec, reads only the operations needed, and writes one validated scenario per behaviour, with logins by tag. |
 | `mobile-test` | Registers the app on the device farm, takes element ids from the uploaded build, writes the test, and runs it on a real device. |
