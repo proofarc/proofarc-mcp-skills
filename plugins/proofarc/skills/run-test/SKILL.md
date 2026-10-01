@@ -1,6 +1,6 @@
 ---
 name: run-test
-description: Run ProofArc tests, prove each assertion can fail, and report the result — for UI tests and API scenarios. Use after a test is created, or when the user asks to run, re-run or report on tests.
+description: Run ProofArc tests, prove each assertion can fail, and report the result — for UI tests, API scenarios and mobile tests. Use after a test is created, or when the user asks to run, re-run or report on tests.
 ---
 
 # Run, prove, report
@@ -23,7 +23,7 @@ Change the expected value, run, and confirm the test **fails** at that step. The
 - **Green:** say so in one line — test, steps passed, run id.
 - **Red:** it's a finding. Report the failing step and its message. **Never** change the expectation to make it pass.
 - A step failing in under a second with `ERR_NAME_NOT_RESOLVED at https://site.compath` means a missing slash — `{{baseUrl}}/path`.
-- An error that names a fix (missing credential, no driver, which target) — apply it and run again; see `webui-test/reference.md`.
+- An error that names a fix (missing credential, no driver, which target) — apply it and run again. `references {{username}}/{{password}} but no credentials are available` means the environment needs a login: ask the user for it, add it, and pass its tag as `credential_tag`.
 - `CREDENTIAL_AMBIGUOUS` or `CREDENTIAL_TAG_NOT_FOUND` — the run was refused before anything ran; it's a setup question, not a test result. See `logins.md`.
 
 ## 4. Report

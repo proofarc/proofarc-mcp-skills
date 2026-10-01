@@ -11,7 +11,7 @@ Skills that guide your agent through testing with [ProofArc](https://proofarc.ai
 
 Start a new session afterwards so the skills load.
 
-**You also need the ProofArc MCP server connected** (`/mcp` should list it). The skills drive its tools; without it they'll tell you it isn't connected and stop.
+**You also need the ProofArc MCP server connected** (`/mcp` should list it). Ask *"connect me to ProofArc"* and the `connect` skill walks you through it.
 
 ## Skills
 
@@ -20,15 +20,21 @@ Start a new session afterwards so the skills load.
 | `create-test` | Starts every request. Works out what kind of test (web UI, API, mobile, performance, security) and what it should prove — asks when that's unclear — then hands off. |
 | `project-setup` | Makes sure the project, application, environment and target exist (and a login credential, if needed). Reuses what's there; creates only what's missing. |
 | `webui-test` | Reuses a recent crawl of the site (or crawls it), takes selectors from the crawl, and writes one validated Playwright test per behaviour. |
+| `api-test` | Finds the API spec, reads only the operations needed, and writes one validated scenario per behaviour, with logins by tag. |
+| `mobile-test` | Registers the app on the device farm, takes element ids from the uploaded build, writes the test, and runs it on a real device. |
+| `performance-test` | Turns a passing API scenario into a load test with response-time and error-rate limits, dry-runs it, runs it, and reports p95 and errors. |
 | `run-test` | Runs the tests and proves each assertion can fail. |
+| `connect` | Connects Claude Code to a ProofArc instance, or reconnects when tools answer 401. |
 | `test-report` | Builds a report of any runs — a built-in layout or one you describe (with a branded starter template) — rendered by the platform. |
 
 ```mermaid
 flowchart LR
   U([I want to create a test]) --> CT[create-test<br/>what kind? what to prove?]
-  CT -- Web UI --> PS1[project-setup<br/>WEB_APP] --> WT[webui-test<br/>crawl · selectors · write] --> RT[run-test<br/>run · prove · report]
-  CT -- API --> PS2[project-setup<br/>REST_SERVICE] --> PB1[API playbook] --> RT
-  CT -- Mobile / Perf / Security --> PB2[ProofArc playbooks]
+  CT -- Web UI --> PS1[project-setup<br/>WEB_UI] --> WT[webui-test<br/>crawl · selectors · write] --> RT[run-test<br/>run · prove · report]
+  CT -- API --> PS2[project-setup<br/>REST] --> AT[api-test] --> RT
+  CT -- Mobile --> PS3[project-setup<br/>MOBILE_UI] --> MT[mobile-test<br/>write · run on device]
+  CT -- Performance --> AT2[passing API scenario] --> PT[performance-test]
+  CT -- Security --> PB2[ProofArc playbooks]
 ```
 
 ## Try it

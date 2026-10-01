@@ -28,11 +28,11 @@ A test needs four things: a **project**, an **application**, an **environment**,
    - Environment names are shared across projects. Use a specific name (`toolshop-staging`); don't reuse `development` or `production` unless the user means that shared one.
    - `auth_requirement`: `PUBLIC` if anyone can open the site, `AUTHENTICATED` if tests log in.
 4. **Credential** (login needed only) — ask the user for it, or ask them to add it, then `add_environment_credential(environment, tag, username, password, is_default=true)`. Tests refer to it by tag only. Never write a login into a test; never borrow one from another environment.
-   - **Several logins in one environment:** mark exactly one as default, or every run must name its login — otherwise runs are refused with `CREDENTIAL_AMBIGUOUS`. Which login a run uses: see `run-test/logins.md`.
+   - **Several logins in one environment:** mark exactly one as default, or every run must name its login — otherwise runs are refused with `CREDENTIAL_AMBIGUOUS`. A run signs in as: the login named on the run → the one saved on the test → the one set on the target → the environment default.
    - **Login for a website target** (used by suites and crawls when nothing more specific is named): `set_target_auth(target, auth_config={"authType": "UI_LOGIN", "credentialTag": "<tag>"})`. `authType` is required; without it the call is refused.
    - An API environment needs the login call once: `set_environment_auth_endpoint(environment, login_endpoint="/auth/login", auth_type="BEARER", token_json_path="$.accessToken")` (adjust to the app).
 5. **Target** — `add_target(environment, name, target_type, base_url, app_tag, application)`.
-   - `target_type` matches the application type.
+   - `target_type`: `WEB_APP` for a website, `REST_SERVICE` for an API.
    - `base_url` without a trailing slash.
    - `app_tag` exactly the application's.
    - One target per address **per type** per environment — a website and an API may share an address.
