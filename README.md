@@ -11,6 +11,11 @@ Skills that guide your agent through testing with [ProofArc](https://proofarc.ai
 
 Start a new session afterwards so the skills load.
 
+**Before you start, you need:**
+- your ProofArc instance's address, for example `https://ui-<company>.proofarc.ai`
+- a ProofArc user with the ANALYST role; ask your ProofArc admin
+- macOS or Linux with `bash` and `python3` (on Windows, use WSL or Git Bash)
+
 **You also need the ProofArc MCP server connected** (`/mcp` should list it). Ask *"connect me to ProofArc"* and the `connect` skill walks you through it.
 
 ## Skills

@@ -24,7 +24,7 @@ Start with: the target (from `project-setup`) and the list of behaviours to prov
 
 Never guess. Use each element's `primarySelector` and `alternates`, preferring a stable `#id`, `[name=…]`, or a role/label (`aria-label`) over a class or text.
 
-**Test hooks aren't in the crawl yet.** The crawler doesn't record `data-test` / `data-testid` attributes (a known bug), so a site that has them looks as if it doesn't. Don't tell the user the site has no test hooks, and don't invent `data-test` selectors. If a key element can only be found by class or text, use that — and say plainly that the test depends on that text or layout.
+**Test hooks may be missing from the crawl.** The crawl doesn't always record `data-test` / `data-testid` attributes, so a site that has them can look as if it doesn't. Don't tell the user the site has no test hooks, and don't invent `data-test` selectors; use only selectors the crawl returned. If a key element can only be found by class or text, use that — and say plainly that the test depends on that text or layout.
 
 Avoid auto-generated ids such as `#_r_1_` and position-based selectors — they break on the next deploy. Don't hard-code URLs of items the site regenerates (product or order ids).
 
@@ -43,9 +43,9 @@ steps:
   selector: "#search-query"
   value: "pliers"
 - action: CLICK
-  selector: '[data-test="search-submit"]'
-- action: VALIDATE_TEXT
-  selector: '[data-test="product-name"]'
+  selector: 'button.btn:has-text("Search")'   # as returned by the crawl
+- action: WAIT_FOR_TEXT
+  selector: body
   expectedText: "Pliers"
 - action: TAKE_SCREENSHOT
 ```

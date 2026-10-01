@@ -5,17 +5,17 @@ description: Connect Claude Code to a ProofArc instance over MCP, or reconnect w
 
 # Connect to ProofArc
 
-ProofArc's MCP server is at `https://<your-instance>/mcp`. It accepts a login token in the `Authorization` header. The token comes from your ProofArc username and password and lasts about a day.
+ProofArc's MCP server is at `https://<your-instance>/mcp`. It accepts a login token in the `Authorization` header. The token comes from your ProofArc username and password and lasts 30 days. It is stored in plain text in Claude Code's config (`~/.claude.json`); the password is not stored.
 
 ## Check first
 
 - `claude mcp list` (or `/mcp` inside Claude Code) shows the ProofArc server. If it says ✔ Connected, nothing needs doing.
-- Tools answering **401 / unauthorized** mean the token has expired. Reconnect (below); the setup itself is fine.
+- Tools answering **401 / unauthorized** mean the token has expired (after 30 days) or the user was disabled. Reconnect (below); the setup itself is fine.
 - `list_projects` working means the connection is good.
 
 ## Connect, or reconnect
 
-Save this as `connect-proofarc.sh` and run it with `bash connect-proofarc.sh`. Use bash: zsh's `read -p` means something else. The user types the password at the prompt; it isn't shown or saved anywhere. Set `BASE` to your instance's address, and use a different `NAME` for each instance.
+**The person runs this in their own terminal, not the agent: it asks for a password.** Save it as `connect-proofarc.sh` and run it with `bash connect-proofarc.sh`. Use bash: zsh's `read -p` means something else. The user types the password at the prompt; it isn't shown or saved anywhere. Set `BASE` to your instance's address, and use a different `NAME` for each instance.
 
 ```bash
 #!/usr/bin/env bash

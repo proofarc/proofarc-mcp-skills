@@ -21,7 +21,7 @@ Check it there. A pass alone doesn't prove which login ran.
 | 400 `CREDENTIAL_AMBIGUOUS` | 2+ active logins, none default, none named | name one with `credential_tag`, or mark one default |
 | 400 `CREDENTIAL_TAG_NOT_FOUND` | named or saved login doesn't exist, or is switched off (message says DEACTIVATED) | fix the name, or `set_environment_credential_active(environment, tag, active=true)` |
 
-A missing or switched-off login is **never** replaced with the default. Mobile currently returns this refusal as HTTP 500 with the same message (to be fixed).
+A missing or switched-off login is **never** replaced with the default.
 
 A public app, `allow_unauthenticated=true`, or a UI/mobile test that never types `{{username}}`/`{{password}}`/`{{token}}`/`{{apiKey}}` is not refused for having no default.
 

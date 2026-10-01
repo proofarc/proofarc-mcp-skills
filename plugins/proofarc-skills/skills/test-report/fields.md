@@ -1,6 +1,6 @@
 # Report fields for custom templates
 
-Templates are FreeMarker. Every `${…}` is HTML-escaped automatically. Fields confirmed on dev, 2026-09-29.
+Templates are FreeMarker. Every `${…}` is HTML-escaped automatically. 
 
 ## `report`
 | field | example |

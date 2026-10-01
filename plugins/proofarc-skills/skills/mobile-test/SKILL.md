@@ -29,7 +29,7 @@ Never put either into a test.
 
 ## 2. Element ids
 
-- Upload the build once: `POST /api/mobile-apps/{id}/upload`, multipart field `file`, with the APK or IPA.
+- The build (APK/IPA) must be uploaded once. There is no MCP tool for it: ask the user to upload it in ProofArc under **Mobile Testing → Mobile Apps → Upload Binary** on the app's row. Without it, skip the scan and take selectors from the user or an existing test.
 - `inspect_mobile_app_static(mobile_app, level="index")` reads ids from the build. No device is used and it costs nothing.
   - Filter with `screen=`, `name=` or `text=`, and `stable_only=true`.
   - The stored result can be read again later with `get_mobile_inspection_digest` and the same filters.
@@ -38,6 +38,7 @@ Never put either into a test.
 ## 3. Write the test
 
 ```yaml
+name: standard user login shows products
 steps:
   - action: type
     selector: accessibility:test-Username

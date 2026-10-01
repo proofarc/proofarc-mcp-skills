@@ -13,7 +13,7 @@ A test needs four things: a **project**, an **application**, an **environment**,
 - For an existing project, `get_project_setup_status(project)` says what's done and what's missing.
 - `list_project_applications(project)`, `list_environments(project)`, `list_targets(environment)` show the pieces.
 - A target for the same URL already in the environment means the site is set up there — use it.
-- **Shared environments:** if that environment also holds targets for *other* sites, don't link it into a new project — the project would inherit those sites, and running tests by tag there can't pick a target. Reuse the application, but create a project-specific environment (e.g. `skill-trial-toolshop`) with its own target for the same URL, or ask the user which they prefer.
+- **Shared environments:** if that environment also holds targets for *other* sites, don't link it into a new project — the project would inherit those sites, and running tests by tag there can't pick a target. Reuse the application, but create a project-specific environment (e.g. `shop-staging-ui`) with its own target for the same URL, or ask the user which they prefer.
 
 ## 2. Create what's missing — in this order
 
@@ -24,7 +24,7 @@ A test needs four things: a **project**, an **application**, an **environment**,
    - `application_interfaces`: what the app exposes — `["WEB_UI"]` for a website, `["REST"]` for an API (also `GRAPHQL`, `SOAP`, `GRPC`, `MESSAGING`, `WEBSOCKET`, `MOBILE_UI`, …). Without it the call is refused.
    - `app_tag`: a short slug (`toolshop-web`) that connects the application, its target and its tests.
    - Application names are shared across projects — an existing name links that application (`linkedExisting: true`). Tell the user.
-3. **Environment** — `create_environment(name, auth_requirement, project)`, then `link_environment(environment, project)`.
+3. **Environment** — `create_environment(name, auth_requirement, project)`. Passing `project` links it; to use an existing environment in another project, `link_environment(environment, project)`.
    - Environment names are shared across projects. Use a specific name (`toolshop-staging`); don't reuse `development` or `production` unless the user means that shared one.
    - `auth_requirement`: `PUBLIC` if anyone can open the site, `AUTHENTICATED` if tests log in.
 4. **Credential** (login needed only) — ask the user for it, or ask them to add it, then `add_environment_credential(environment, tag, username, password, is_default=true)`. Tests refer to it by tag only. Never write a login into a test; never borrow one from another environment.

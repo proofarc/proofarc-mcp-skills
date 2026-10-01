@@ -37,7 +37,7 @@ Runs of different kinds (UI, mobile, API) can go in one report.
    Put `!` after anything that can be missing (`${r.duration!'—'}`). Full list and examples: `fields.md`. For a polished full report, start from `templates/branded-full.ftl`.
 3. Pass it as `template_source`. A mistake comes back as a 400 that names the field — fix it and render again.
 
-The platform doesn't store custom templates yet: save the template file for the user (e.g. `reports/<name>.ftl` in their repo) so it can be reused.
+Custom templates aren't saved on the platform: save the template file for the user (e.g. `reports/<name>.ftl` in their repo) so it can be reused.
 
 ## 3. Render
 
@@ -50,5 +50,5 @@ The platform doesn't store custom templates yet: save the template file for the 
 
 - Everything from the application under test is escaped — text from the site can't break the report.
 - Screenshots appear as file names/links, not embedded images; opening them needs a ProofArc login.
-- UI step "detail" (selector or value) is empty for Playwright runs — the agent doesn't store it yet. Don't build a layout that depends on it.
+- UI step "detail" (selector or value) is empty for Playwright runs. Don't build a layout that depends on it.
 - A run that failed before any step has no step rows; its reason is in the run's `errorMessage`.
