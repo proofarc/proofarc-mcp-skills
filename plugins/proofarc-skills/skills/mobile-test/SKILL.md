@@ -25,7 +25,7 @@ Never put either into a test.
   ```
   - Ask the user for the farm user and key, and for the `bs://` app URL from their BrowserStack upload.
   - `osVersion` must be a full version: `"13.0"`, not `"13"`. A short version fails within about a second, before any device is booked. If that happens, it's this setting, not the farm.
-- App login: `add_environment_credential(environment, tag, username, password)`, the values the user gives you. The test refers to the tag.
+- App login: `add_environment_credential(environment, tag, username, password)` with values **the user gives you**. Never fill in a password yourself, not even a public demo one; ask. The test refers to the tag.
 
 ## 2. Element ids
 
@@ -33,7 +33,7 @@ Never put either into a test.
 - `inspect_mobile_app_static(mobile_app, level="index")` reads ids from the build. No device is used and it costs nothing.
   - Filter with `screen=`, `name=` or `text=`, and `stable_only=true`.
   - The stored result can be read again later with `get_mobile_inspection_digest` and the same filters.
-- Take selectors from that inventory, never from guesses.
+- Take selectors from that inventory, never from guesses or memory. If the scan has no ids (common for React Native and Flutter builds), use selectors from the app's existing tests or ask the user. Say which source each selector came from.
 
 ## 3. Write the test
 
