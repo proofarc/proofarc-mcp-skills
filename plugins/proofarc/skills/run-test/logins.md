@@ -1,7 +1,5 @@
 # Which login a run signs in as
 
-Verified on proofarc-dev, 2026-09-30 (#454; fixes #437, #450).
-
 ## The rule, same for every run type
 
 1. the login named on the run: `credential_tag=` on `execute_scenario`, `run_ui_test`, `run_ui_test_suite`, `run_mobile_test`, `run_canary_performance`
@@ -46,4 +44,4 @@ Use it for "wrong password → 401" steps.
 
 ## Proving a run used the right login
 
-Put a **wrong-password login as the environment default**, and the right one on the test or run. If the wrong login is used, the run fails. Example setup: project `qa-454-login-rule` (179) on dev. Environment 136 has default `bad-admin` plus `demo-admin`. Environment 137 has two logins and no default.
+Put a **wrong-password login as the environment default**, and the right one on the test or run. If the wrong login is used, the run fails.
