@@ -16,7 +16,7 @@ description: Run ProofArc tests, prove each assertion can fail, and report the r
 
 ## 2. Prove the assertion once
 
-Change the expected value, run, and confirm the test **fails** at that step. Then change it back. A test that passes both ways tests nothing.
+Change the expected value with `update_ui_test_from_yaml(test, yaml_text)` (UI) or `update_api_scenario_from_yaml(scenario, yaml_text)` (API), run, and confirm the test **fails** at that step. Then restore it, **re-run, and confirm it's green again** before reporting. A test that passes both ways tests nothing.
 
 ## 3. Read the result
 

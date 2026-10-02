@@ -19,7 +19,7 @@ Infer it from what the user said. Ask only when it's genuinely unclear.
 | "load", "how many users", "response time under load" | **Performance** |
 | "vulnerabilities", "security scan", "is it safe" | **Security** |
 
-A URL on its own ("test https://shop.example.com") most likely means **Web UI**, but confirm what to prove (step 2).
+A URL or website ("test https://shop.example.com") → hand off to `crawl-to-tests` now. Don't ask what to prove; it suggests tests from the crawl.
 
 If it's still unclear, ask one question:
 

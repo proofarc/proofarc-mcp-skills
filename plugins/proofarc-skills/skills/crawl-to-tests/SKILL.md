@@ -1,11 +1,26 @@
 ---
 name: crawl-to-tests
-description: Use for ANY request to test a website or web app with ProofArc — "test my website", "test <url>", "create/build/write UI tests", "web tests for <app>", "what can I test on <site>", "suggest tests", "build tests from the crawl", "find the screen with …", or a ProofArc run link (…/scans/<id>). Interactive: picks the application, project and environment, reads or runs the crawl of that site, explains what the app does and how testable it is, suggests scenarios and tests (or maps the user's own scenario onto the crawl), then builds, runs and proves the ones the user picks. Web UI only.
+description: Use for ANY request to test a website or web app with ProofArc — "test my website", "test <url>", "create/build/write UI tests", "web tests for <app>", "what can I test on <site>", "suggest tests", "build tests from the crawl", "find the screen with …", or a link to a crawl run. Interactive: picks the application, project and environment, reads or runs the crawl of that site, explains what the app does and how testable it is, suggests scenarios and tests (or maps the user's own scenario onto the crawl), then builds, runs and proves the ones the user picks. Web UI only.
 ---
 
 # From crawl to web UI tests: an interactive guide
 
 Web UI only. We automate an **application**, so start there, then the **project**, then the **environment** to work in. The environment's **website target** is where the crawl lives and where the tests run.
+
+## Non-negotiable test rules (check every plan against these, without asking the user)
+
+1. **No record ids.** No id from the data in a URL or selector (`/product/01M3…`). Reach records through the UI, starting where a user starts (home, a category, search), and click them **by visible name** (`a:has-text("Combination Pliers")`), never "the first result". Only fixed routes (`/contact`, `/category/hand-tools`) may be opened directly.
+2. **Wait for that page's content before every interaction**, using `WAIT_FOR_VISIBLE`/`WAIT_FOR_TEXT` with `timeout:` in **milliseconds** (`15000`). Wait for a form, list or heading of that page, not the site's header.
+3. **Addresses are `{{baseUrl}}/path`**, with the application's `appTag:` at the top. Never the site's URL.
+4. **Parameters:** `NAVIGATE_TO` takes `url:`. `VALIDATE_*` and `WAIT_FOR_TEXT` take `expectedText:`. `value:` is only for `SEND_KEYS` and `SELECT_BY_TEXT`.
+5. **`CLEAR`, then `SEND_KEYS`.** Never `CLICK` a field before typing.
+6. **Dropdowns use `SELECT_BY_TEXT`** with the option text copied exactly from the crawl. `SEND_KEYS` fails on a `<select>`.
+7. **Selectors only from the crawl**, with one exception: an element that exists only **after** an action (a cart badge, a toast) may be taken from the first run's screenshot or failing step. Say so in the plan.
+8. **The test ends by asserting the outcome** the user asked about. A screenshot is evidence, not a check.
+9. **Logins** are `{{username}}`/`{{password}}` from the environment's saved login, never literal values.
+
+`target` always means the target's **id** from `list_targets`. Names repeat across environments.
+Full selector and parameter detail, a wrong-vs-right example, and the command table are in `reference.md`, in this skill's folder.
 
 **Every reply ends with numbered choices** the user can answer with a number. If the `AskUserQuestion` tool is available, use it. Mark a sensible default *(recommended)*. Ask one thing per reply.
 
@@ -16,7 +31,7 @@ Web UI only. We automate an **application**, so start there, then the **project*
 
 **Which ProofArc first.** If more than one ProofArc server is connected (tool names `mcp__<server>__…`), ask which instance to use before anything else, and use only that server's tools from then on. With one server, use it without asking.
 
-**Load the tools in one search at the start** (note that `list_targets` is called with no arguments in step 1), by full name: `select:mcp__<server>__list_applications,mcp__<server>__list_application_projects,…` for `list_applications`, `list_application_projects`, `list_environments`, `list_targets`, `get_crawl_digest`, `crawl_by_target`, `advise_ui`, `find_playbooks`, `get_playbook`, `validate_ui_test_yaml`, `create_ui_test_from_yaml`, `run_ui_test`, `get_execution_status`. Short names without the prefix don't match.
+**Load the tools in one search at the start** (note that `list_targets` is called with no arguments in step 1), by full name: `select:mcp__<server>__list_applications,mcp__<server>__list_application_projects,…` for `list_applications`, `list_application_projects`, `list_environments`, `list_targets`, `get_crawl_digest`, `crawl_by_target`, `advise_ui`, `find_playbooks`, `get_playbook`, `validate_ui_test_yaml`, `create_ui_test_from_yaml`, `run_ui_test`, `get_execution_status`, `get_crawl_results`, `set_target_auth`, `list_ui_test_actions`, `update_ui_test_from_yaml`. Short names without the prefix don't match.
 
 ## 1. Which application: shown by its address
 
@@ -47,7 +62,7 @@ Join them, and keep the applications that have a `WEB_APP` target (or a web type
 
 ## 3. Which environment
 
-- `list_environments(project)`, then `list_targets(environment)` for each one.
+- `list_environments(project)`. Filter the step-1 `list_targets()` result by `environmentName`; don't call `list_targets` again.
 - Offer only environments that have a **`WEB_APP` target bound to this application**. Show each one's target address and whether it has a login saved:
   > 1. **staging**: `https://shop.example.com`, login `qa-user` *(recommended)*
   > 2. **dev**: `https://dev.shop.example.com`, no login
@@ -57,7 +72,7 @@ Join them, and keep the applications that have a `WEB_APP` target (or a web type
 **Logins, asked now and not later.** If the app has a login page or the crawl hit a login wall, and the chosen environment has **no login saved**, say so here:
 > This environment has no login saved, so tests behind the login can't run yet. 1. Add one now (you give the username and password; they're saved in ProofArc, not in tests) 2. Only build tests that don't need a login
 
-For option 1, use `project-setup` to add the login, then `set_target_auth` (`UI_LOGIN`) so the crawl can get behind it. Never invent or reuse a password.
+For option 1, follow `find_playbooks("authenticated web UI")` (the Authenticated Web UI Flow): the user gives the login, `add_environment_credential`, then `set_target_auth(target, auth_config={"authType": "UI_LOGIN", "credentialTag": …})` so the crawl and the tests can get behind it. Never invent or reuse a password.
 
 Confirm in one line: *"Working on **Toolshop web**, project **X**, environment **Y**, target `https://…`."*
 The user can type `where` at any time to change this.
@@ -66,8 +81,8 @@ The user can type `where` at any time to change this.
 
 1. `get_crawl_digest(target, level="index")` reads the stored crawl in under a second. It returns the pages, with their element counts, and when the target was crawled.
 2. **No stored crawl** (`cached: false`), or it's older than the user wants: offer to crawl.
-   - Call `crawl_by_target(target, mode="digest", max_depth=2, max_urls=40)`. It takes 1–2 minutes; say so before starting.
-   - **App needs a login:** the target needs one first. Follow the playbook from `find_playbooks("authenticated web UI")`: a saved login, then `set_target_auth` with `authType: "UI_LOGIN"`. Never type a password yourself.
+   - Call `crawl_by_target(target, mode="digest", max_depth=2, max_urls=40)`. It waits until the crawl finishes (1–2 minutes) and returns the digest; say so before starting. If it returns `timedOut`, the crawl is still going: read `get_crawl_digest` again in a minute.
+   - **App needs a login:** the target needs one first. Set it up as in step 3 (the Authenticated Web UI Flow), then crawl.
    - After crawling, check that the pages are app routes, not just `/login`.
 3. **A run link to an ad-hoc crawl** (one not made from a target) can be read with `get_crawl_results(job_id)`, but it doesn't say where tests should run. Use it only to understand the site; build from the target's crawl.
 4. `advise_ui(target)` returns the testability score, band, and examples of controls with no stable id. Call it **only once this target has a crawl**, and pass the target's **id** from `list_targets`, not its name; names repeat across environments. On a target that was never crawled, `advise_ui` can report another environment's crawl of the same address. Don't present that as this target's analysis.
@@ -106,7 +121,7 @@ One screen. For example, for Toolshop:
 >
 > **Edge cases the crawl supports:** empty search (the search box is there; I'll ask what it should show). Login is not covered: the crawl didn't go behind it.
 >
-> Pick tests (`1,3`), take the whole set (`all`), or type `find <text>` to explore.
+> Pick tests (`1,3`), a scenario (`A`), the whole set (`all`), describe your own scenario, or type `find <text>` to explore.
 
 ### How to build the suggested set
 
@@ -121,8 +136,11 @@ Work through this checklist **before** writing the list. Weaker models skip it, 
    - An empty search is fine if there's a search box. An invalid email is fine if there's an email field.
    - **Never** suggest a case the crawl gives no sign of, such as "payment declined". Check first with `get_crawl_digest(target, text="<word>")` **and** by reading the matching cards' names: the crawl cuts long labels short. For example, Toolshop's "Long Nose Pliers" card ends in "Out…" (out of stock), but a search for "stock" finds nothing.
    - When the expected result isn't in the crawl (what an empty search shows), **ask the user**, or run the test once, show the result, and ask *"Is this right?"* before asserting it.
-5. **Five or six items at most**, deduplicated. If more behaviours exist, say how many and offer `more`.
-6. **Say what the crawl didn't reach**, such as login-only pages or pages past `max_depth`, and offer a deeper crawl or a crawl with a login.
+5. **Every suggestion already obeys the Non-negotiable test rules.**
+   - Nothing like "open a specific product directly": products are reached by search or a category, then clicked by name.
+   - **Each item names the check it ends with**, for example *"→ the cart shows 1"*, *"→ Pliers is in the results"* or *"→ each field shows its error"*. An item that ends with a click or "check the button" isn't a test yet.
+6. **Five or six items at most**, deduplicated. If more behaviours exist, say how many and offer `more`.
+7. **Say what the crawl didn't reach**, such as login-only pages or pages past `max_depth`, and offer a deeper crawl or a crawl with a login.
 
 ### When the user asks to improve or trim the set
 
@@ -139,19 +157,7 @@ Then ask *"Use this set? 1. Yes 2. Change something"*.
 
 ## 6. Commands, any time
 
-All of these read the target's stored crawl with `get_crawl_digest(target, …)`. Each takes under a second.
-
-| the user types | call | show |
-|---|---|---|
-| `find <text>` | `page="*<text>*", level="index"`, then `text="<text>"` | screens whose address contains it, then elements whose label contains it, each with its page |
-| `show <page>` | `page="<path or *part*>"`, then `type="form"`, `type="input"`, `type="button"` | that page's fields and buttons, marking which have stable ids |
-| `stable <page>` | `page=…, stable_only=true` | only controls with an id a developer chose |
-| `explain` | the step 4 results you already have | page groups with counts, forms by page, testability examples |
-| `scenario <in your words>` | `get_crawl_digest` per step (`page=`, `text=`, `type=`) | the user's journey mapped onto the crawl, step by step (see below) |
-| `test <screen or idea>` | | 2–3 test ideas for it |
-| `where` | | go back to steps 1–3 |
-| `fixlist` | `advise_ui(target, full=true)` | a list for the developers: each control with no stable id, its page, and the `data-testid` to add, ranked by how many tests would use it |
-| `more` / `done` | | next suggestions / finish |
+The user can type these at any time: `find <text>`, `show <page>`, `stable <page>`, `explain`, `scenario <in your words>`, `test <idea>`, `where`, `fixlist`, `more` and `done`. Each one, and the call behind it, is in `reference.md`, under Commands. They all read the stored crawl with `get_crawl_digest(target, …)` and take under a second. `find` matches a screen's **address** (`page="*<text>*"`) and an element's **label** (`text=`).
 
 ### Scenarios in the user's own words
 
@@ -183,133 +189,23 @@ When the user describes one:
 
 ## 8. Build, run, prove
 
-### Before showing a plan, check it against this list. Don't ask the user about any of it.
-- Every step that uses an element comes after a wait for **content of that page** (`WAIT_FOR_VISIBLE`/`WAIT_FOR_TEXT` with `timeout:` in ms). That's always required, not an option to offer.
-- No record ids anywhere (`/product/01M3…`). Reach records through the UI and click them **by visible name** (`a:has-text("Combination Pliers")`), never "the first result".
-- No `CLICK` on a field before typing into it: `CLEAR`, then `SEND_KEYS`.
-- Dropdowns use `SELECT_BY_TEXT` with the exact option text.
-- **The test ends by asserting the outcome** the user asked about: the cart count is 1, the results list Pliers, the error text appears. A screenshot is evidence, not a check.
-
-### These rules are mandatory, not suggestions
-- **No record ids. Ever.** If a URL or selector contains an id from the data, the test is wrong. Rewrite it before showing the plan.
-- **Journeys start where a user starts:** the home page, a category, or the search box. Only fixed routes (`/contact`, `/category/hand-tools`) may be opened directly. A record page (a product, an order) is reached by clicking through.
-- **Wait for content before every interaction**, on every page the test reaches.
-
-### Wrong vs right, the same journey
-❌ **Wrong** (built in a real trial; it broke):
-```yaml
-- action: NAVIGATE_TO
-  url: "{{baseUrl}}/product/01M3FZ5CD4BXK3PFN6RCYZ3SXY"   # record id: breaks when the data changes
-- action: CLICK
-  selector: "#btn-add-to-cart"                            # no wait: the page isn't loaded yet
-- action: TAKE_SCREENSHOT                                 # no check: proves nothing
-```
-
-✅ **Right** (validated, passed on Playwright, and failed when the expected count was changed to 7):
-```yaml
-name: "Search pliers, open Combination Pliers, add to cart"
-appTag: "toolshop-web-trial"
-steps:
-- action: NAVIGATE_TO
-  url: "{{baseUrl}}/"
-- action: WAIT_FOR_VISIBLE
-  selector: "#search-query"
-  timeout: 15000
-- action: CLEAR
-  selector: "#search-query"
-- action: SEND_KEYS
-  selector: "#search-query"
-  value: "pliers"
-- action: CLICK
-  selector: 'button:has-text("Search")'
-- action: WAIT_FOR_VISIBLE
-  selector: 'a.card:has-text("Combination Pliers")'
-  timeout: 15000
-- action: CLICK
-  selector: 'a.card:has-text("Combination Pliers")'
-- action: WAIT_FOR_VISIBLE
-  selector: "#btn-add-to-cart"
-  timeout: 15000
-- action: CLICK
-  selector: "#btn-add-to-cart"
-- action: WAIT_FOR_VISIBLE
-  selector: 'a[href="/checkout"]'
-  timeout: 10000
-- action: VALIDATE_TEXT
-  selector: 'a[href="/checkout"]'
-  expectedText: "1"
-- action: TAKE_SCREENSHOT
-  filename: "cart-has-one"
-```
-The cart link `a[href="/checkout"]` isn't in the crawl: it only appears **after** something is added. For an outcome like that, run the test once, look at the result (a screenshot or the failing step's message), and then add the check. Say in the plan that this one selector came from the run, not the crawl.
+Check the plan against the **Non-negotiable test rules** at the top before showing it.
 
 ### When a run fails: fix your own mistakes, ask only about the site
 1. Read the failing step and its message.
-2. **If it's a test-writing mistake**, fix it and re-run without asking: a missing wait, a wrong parameter, a selector not from the crawl, a record id, the wrong action for a dropdown. Then report once: *"Step 7 failed because it didn't wait for the product page; added the wait; ✓ passes now."*
+2. **If it's a test-writing mistake**, fix it with `update_ui_test_from_yaml` and re-run without asking. That covers a missing wait, a wrong parameter, a selector not from the crawl, a record id, or the wrong action for a dropdown. Then report once: *"Step 7 failed because it didn't wait for the product page; added the wait; ✓ passes now."*
 3. **Ask only when the site itself behaves unexpectedly**, with the correct steps in place: *"The page loads but shows no Add to cart button. 1. The site is wrong, keep it as a finding 2. I misread the page, tell me what should happen"*.
-4. **Never offer options that break these rules**, such as "use another product id", "skip the wait" or "skip this test" as a fix. They waste a round trip and the user has to reject them.
+4. **Never offer options that break the rules**, such as "use another product id", "skip the wait" or "skip this test" as a fix.
 
-
-**Selectors:**
-- **No record ids in a test.** A URL or selector containing an id from the data (`/product/01M3FZ5CD4BXK3PFN6RCYZ3SXY`, `#order-4711`) breaks when the data changes. Get to the record **through the UI**: open the listing, then click the item by its visible name (`a:has-text("Combination Pliers")`). Its name is unique and readable. A bare pattern like `a[href^="/product/"]` matches every product, and clicks only the first one on Playwright, which differs from WebDriver.
-- **Never use framework state or generated classes**: `ng-untouched`, `ng-pristine`, `ng-valid`, `is-active`, `Mui-focused`, or hashed names like `css-1x2y3z`. They change as the user interacts or with every build. `form.ng-untouched` stops matching the moment a field is touched.
-- **Order of preference:** `#id` → `[name="…"]` → `[aria-label="…"]` → `a[href="/exact/path"]` (fixed routes only) → visible text. Say in the plan when a step depends on text.
-- Only use selectors from the crawl. Prefer unique attributes: `#id`, `input[name="…"]`, `a[href="/exact/path"]`.
-- The crawl's `sel` is often a shared class that matches many elements; don't use that.
-- Never invent `data-test` selectors.
-
-**Addresses: always `{{baseUrl}}`, never the site's URL.**
-- Write `url: "{{baseUrl}}/category/hand-tools"`, not `https://practicesoftwaretesting.com/category/hand-tools`.
-- Put the application's app tag at the top (`appTag: "<appTag>"`). Then `{{baseUrl}}` resolves to the environment's target at run time, and the same test runs on dev, staging or prod unchanged.
-- `{{baseUrl}}` has no trailing slash, so always write `{{baseUrl}}/path`.
-
-**Parameters each action really takes** (the validator refuses the wrong ones):
-- `NAVIGATE_TO` takes `url:`.
-- Waits take `timeout:` in **milliseconds** (`10000`). A `value: "5"` on a wait does nothing and falls back to 30 s.
-- `VALIDATE_TITLE`, `VALIDATE_TEXT` and `WAIT_FOR_TEXT` take `expectedText:`. `value:` is only for typing (`SEND_KEYS`).
-- **Dropdowns (`<select>`) use `SELECT_BY_TEXT`.** Set `value:` to the option's visible text **copied character for character from the crawl**. Toolshop's option is `"Price (Low - High)"` with a plain hyphen; a dash (`–`) or extra spaces won't match, and the step times out.
-  - `SEND_KEYS` fails on a select.
-  - The crawl may list a dropdown as `type: input`, so treat a sort, filter or category control as a dropdown.
-  - If the crawl doesn't show the full option text, ask the user for it. Don't fall back to `SELECT_BY_INDEX`: option order changes, and the test would quietly pick something else.
-  - **Custom dropdowns**, built from `div`s rather than a `<select>`, don't work with the `SELECT_*` actions. `CLICK` the control, then `CLICK` the option by its text.
-- **Wait before checking a title.** Single-page apps set the page title after the page loads, so `VALIDATE_TITLE` straight after `NAVIGATE_TO` can read the generic title. Wait for an element on that page first, as in the example. The same goes for validation messages: `WAIT_FOR_TEXT` before asserting them.
-- **Other actions** (hover, double-click, read a value, check an attribute, frames, alerts, uploads): `list_ui_test_actions` gives each action's required parameters. Check it before using an action not listed here.
-- **More detail on one element**, such as its alternate selectors or xpath: use `get_crawl_results(job_id, element=<selector>)` rather than re-crawling at a higher level.
-- **Wait for something on the page you navigated to**, such as its form, list or heading from the crawl, not the site's header or menu. A header element is on every page, so waiting for it proves nothing.
-
-Example (validated):
-```yaml
-name: "Main pages open with the right title"
-appTag: "toolshop-web-trial"
-steps:
-- action: NAVIGATE_TO
-  url: "{{baseUrl}}/category/hand-tools"
-- action: WAIT_FOR_VISIBLE
-  selector: '[aria-label="Sort products"]'
-  timeout: 10000
-- action: VALIDATE_TITLE
-  expectedText: "Hand Tools - Practice Software Testing - Toolshop - v5.0"
-- action: TAKE_SCREENSHOT
-  filename: "hand-tools"
-```
-
-**Steps:**
-- Navigate, wait, act, wait, then assert the **outcome**, not just a click.
-- `CLEAR` before `SEND_KEYS`.
-- Wait times go in `timeout:` (milliseconds).
-- `TAKE_SCREENSHOT` early.
-- `WAIT_FOR_URL` isn't valid; use `VALIDATE_URL`.
-
-**Logins:** `{{username}}`/`{{password}}` from the environment's saved login. Never literal values.
-
-**Then:**
-1. `validate_ui_test_yaml`, then `create_ui_test_from_yaml(project, yaml_text, name, target=<target>, tags="from-crawl")`.
-2. `run_ui_test(test, environment, drivers=["PLAYWRIGHT"], wait=True)`. Read `testOutcome`, not `status`.
-3. Prove the test can fail, as in `run-test`.
+### Then
+1. `validate_ui_test_yaml`, then `create_ui_test_from_yaml(project, yaml_text, name, target="<target id>", tags="from-crawl")`.
+2. `run_ui_test(test, environment, target="<target id>", drivers=["PLAYWRIGHT"], wait=True)`. Read `testOutcome`, not `status`.
+3. **Prove it can fail.** Use `update_ui_test_from_yaml` to change the final expected value, run the test and see it fail, then restore it, re-run, and **confirm it's green again** before reporting.
 4. Report in one line: *✓ Search finds pliers: passed, and fails when the expected name is wrong.*
-5. If it fails, the run's result stands. Show the step and its message, then ask: *"1. The site is wrong, keep it as a finding 2. The test is wrong, fix it"*. Never loosen a check just to make it pass.
+5. If it fails, follow "When a run fails" above. Never loosen a check just to make it pass.
 
 Then offer the remaining tests, `run all` (by the `from-crawl` tag), `report` (hand off to `test-report`), or `done`.
+
 
 ## 9. Done
 

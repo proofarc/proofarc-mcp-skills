@@ -1,6 +1,6 @@
 ---
 name: webui-test
-description: Write ProofArc web UI tests for behaviours the user already chose — reuse or run a crawl of the site, take selectors from it, and create one validated Playwright test per behaviour. Use after create-test and project-setup, when the user wants a UI test for a website or single-page app.
+description: Reference for writing a single Playwright UI test YAML by hand when the user already has exact steps and selectors. Not a starting point — for any "test my website" / "create UI tests" request use crawl-to-tests, whose rules take precedence.
 ---
 
 # Web UI test — from the crawl to a validated test
@@ -38,7 +38,7 @@ steps:
   url: "{{baseUrl}}/"
 - action: WAIT_FOR_VISIBLE
   selector: "#search-query"
-  timeout: 15
+  timeout: 15000
 - action: SEND_KEYS
   selector: "#search-query"
   value: "pliers"

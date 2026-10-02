@@ -10,7 +10,7 @@ Call `list_ui_test_actions` for the full, current list.
 | `NAVIGATE_BACK`, `NAVIGATE_FORWARD`, `REFRESH` | — |
 | `CLICK`, `DOUBLE_CLICK`, `RIGHT_CLICK` | `selector` |
 | `SEND_KEYS` | `selector`, `value` |
-| `WAIT_FOR_VISIBLE`, `WAIT_FOR_CLICKABLE`, `WAIT_FOR_ELEMENT`, `WAIT_FOR_INVISIBLE` | `selector`, `timeout` (seconds) |
+| `WAIT_FOR_VISIBLE`, `WAIT_FOR_CLICKABLE`, `WAIT_FOR_ELEMENT`, `WAIT_FOR_INVISIBLE` | `selector`, `timeout` (milliseconds, e.g. `15000`) |
 | `WAIT_FOR_TEXT` | `selector`, `expectedText`, `timeout` |
 | `VALIDATE_TITLE`, `VALIDATE_URL` | `expectedText` (contains) |
 | `VALIDATE_TEXT` | `selector`, `expectedText` (contains) |

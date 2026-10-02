@@ -35,10 +35,10 @@ Enter your username and password when asked. The password isn't shown or saved.
 
 | skill | job |
 |---|---|
-| `create-test` | Starts every request. Works out what kind of test (web UI, API, mobile, performance, security) and what it should prove — asks when that's unclear — then hands off. |
+| `create-test` | Starts when you haven't said what kind of test. Works out the kind (web UI, API, mobile, performance, security), then hands off. A website goes straight to `crawl-to-tests`. |
 | `project-setup` | Makes sure the project, application, environment and target exist (and a login credential, if needed). Reuses what's there; creates only what's missing. |
 | `crawl-to-tests` | Interactive: reads a finished crawl (or a run link like `…/scans/149`), suggests tests the site supports, and walks you through building them one choice at a time. |
-| `webui-test` | Reuses a recent crawl of the site (or crawls it), takes selectors from the crawl, and writes one validated Playwright test per behaviour. |
+| `webui-test` | Reference for writing one UI test by hand when you already know the exact steps and selectors. For everything else, use `crawl-to-tests`. |
 | `api-test` | Finds the API spec, reads only the operations needed, and writes one validated scenario per behaviour, with logins by tag. |
 | `mobile-test` | Registers the app on the device farm, takes element ids from the uploaded build, writes the test, and runs it on a real device. |
 | `performance-test` | Turns a passing API scenario into a load test with response-time and error-rate limits, dry-runs it, runs it, and reports p95 and errors. |
@@ -49,8 +49,9 @@ Enter your username and password when asked. The password isn't shown or saved.
 ```mermaid
 flowchart LR
   U([I want to create a test]) --> CT[create-test<br/>what kind? what to prove?]
-  CT -- Web UI --> PS1[project-setup<br/>WEB_UI] --> WT[webui-test<br/>crawl · selectors · write] --> RT[run-test<br/>run · prove · report]
-  CT -- API --> PS2[project-setup<br/>REST] --> AT[api-test] --> RT
+  U2([test my website]) --> C2T[crawl-to-tests<br/>app · env · crawl · suggest · build · prove]
+  CT -- Web UI --> C2T
+  CT -- API --> PS2[project-setup<br/>REST] --> AT[api-test] --> RT[run-test<br/>run · prove · report]
   CT -- Mobile --> PS3[project-setup<br/>MOBILE_UI] --> MT[mobile-test<br/>write · run on device]
   CT -- Performance --> AT2[passing API scenario] --> PT[performance-test]
   CT -- Security --> PB2[ProofArc playbooks]
@@ -59,7 +60,7 @@ flowchart LR
 ## Try it
 
 - *"I want to create a test"* — it asks what kind.
-- *"test https://practicesoftwaretesting.com"* — it asks what to check, then sets up and builds it.
+- *"test https://practicesoftwaretesting.com"* — it finds the app and environment, reads the crawl, suggests a set of tests, then builds the ones you pick.
 - *"add a test to project <name> that the contact page shows the email field"* — it reuses the existing setup and adds one test.
 
 ## What the skills insist on

@@ -20,7 +20,7 @@ A test needs four things: a **project**, an **application**, an **environment**,
 **Project before application**: an application can't be created without a project.
 
 1. **Project** — `create_project(name, description)`.
-2. **Application** — `create_application(project, name, app_tag, application_interfaces, auth_requirement)`, then **always** `link_application_to_project(application, project)`; it doesn't show on the project until linked.
+2. **Application** — `create_application(project, name, app_tag, application_type, application_interfaces, auth_requirement)`, then **always** `link_application_to_project(application, project)`; it doesn't show on the project until linked.
    - `application_interfaces`: what the app exposes — `["WEB_UI"]` for a website, `["REST"]` for an API (also `GRAPHQL`, `SOAP`, `GRPC`, `MESSAGING`, `WEBSOCKET`, `MOBILE_UI`, …). Without it the call is refused.
    - **Also pass `application_type`**: `WEB_APP` for a website, `REST_SERVICE` for an API. Passing only `application_interfaces` can save an application with no type, which then doesn't show up as a web app. Afterwards, check with `list_applications` that `applicationType` is set, and fix a missing one with `update_application(application, application_type=…)`.
    - `app_tag`: a short slug (`toolshop-web`) that connects the application, its target and its tests.

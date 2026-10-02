@@ -6,8 +6,10 @@
 set -euo pipefail
 BASE="${1:-}"
 [ -n "$BASE" ] || read -r -p "ProofArc address (e.g. https://ui-company.proofarc.ai): " BASE
+[[ "$BASE" == *://* ]] || BASE="https://$BASE"
 BASE="${BASE%/}"
-HOST="${BASE#*://}"; NAME="proofarc-${HOST%%.*}"; NAME="${NAME/proofarc-ui-/proofarc-}"
+HOSTPORT="${BASE#*://}"; HOSTPORT="${HOSTPORT%%/*}"; BASE="${BASE%%://*}://$HOSTPORT"; HOST="${HOSTPORT%%:*}"
+NAME="proofarc-${HOST%%.*}"; NAME="${NAME/proofarc-ui-/proofarc-}"
 
 command -v claude  >/dev/null || { echo "Claude Code is not installed: https://claude.com/claude-code"; exit 1; }
 command -v python3 >/dev/null || { echo "python3 is required"; exit 1; }
