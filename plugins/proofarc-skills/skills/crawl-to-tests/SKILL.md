@@ -141,10 +141,27 @@ All of these read the target's stored crawl with `get_crawl_digest(target, …)`
 | `show <page>` | `page="<path or *part*>"`, then `type="form"`, `type="input"`, `type="button"` | that page's fields and buttons, marking which have stable ids |
 | `stable <page>` | `page=…, stable_only=true` | only controls with an id a developer chose |
 | `explain` | the step 4 results you already have | page groups with counts, forms by page, testability examples |
+| `scenario <in your words>` | `get_crawl_digest` per step (`page=`, `text=`, `type=`) | the user's journey mapped onto the crawl, step by step (see below) |
 | `test <screen or idea>` | | 2–3 test ideas for it |
 | `where` | | go back to steps 1–3 |
 | `fixlist` | `advise_ui(target, full=true)` | a list for the developers: each control with no stable id, its page, and the `data-testid` to add, ranked by how many tests would use it |
 | `more` / `done` | | next suggestions / finish |
+
+### Scenarios in the user's own words
+
+The user can describe a journey instead of picking from the list, for example *"filter products by brand and check the results change"*. You can invite it in any reply: *"…or describe a scenario in your own words."* **Example scenarios you offer must come from the crawl.** Name only pages and controls you've seen in it: *"Filter by brand"* because the crawl has `brand_id` filters, *"Add to cart"* because it has `#btn-add-to-cart`. Label anything that creates data, for example *"Register a new account (creates an account)"*.
+
+When the user describes one:
+1. **Split it into steps**, then look each one up in the crawl with `get_crawl_digest(target, page=…, text=…, type=…)`.
+2. **Show the mapping**, marking what the crawl covers and what it doesn't:
+   > *Filter by brand, results change:*
+   > 1. Open **Hand Tools** (`/category/hand-tools`) ✓
+   > 2. Tick a brand: `input[name="brand_id"]` ✓ *(the crawl doesn't show which brand is which; I'll pick the first one unless you name one)*
+   > 3. Check that the product list changes ✓ (the listing is on the page)
+   >
+   > 1. Build it 2. Change a step
+3. **A step the crawl didn't reach** (a page behind a login, or past the crawl's depth): say so, and offer a deeper crawl, or a crawl with a login. Never invent its selectors.
+4. Then continue as for any chosen test (section 7).
 
 ## 7. Settle each chosen test (one question per reply)
 
