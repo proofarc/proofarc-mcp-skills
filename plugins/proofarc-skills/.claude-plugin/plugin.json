@@ -1,6 +1,6 @@
 {
   "name": "proofarc-skills",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Guided testing with ProofArc over MCP: connect, web UI tests from a crawl (crawl-to-tests), API, mobile and performance tests, running and reporting.",
   "author": {
     "name": "ProofArc"

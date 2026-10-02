@@ -1,5 +1,11 @@
 # Changelog — proofarc-skills
 
+## 0.3.3 — 2026-10-02
+- **webui-test:** the body now matches its reference-only role. It points to `crawl-to-tests`, applies the same rules, and reads selectors from the stored crawl. Its example uses `CLEAR`, a page-specific wait, and an outcome check.
+- **crawl-to-tests:** §8 is in order (build and run, then what to do when a run fails). The skill reads `reference.md` before drafting the first test. A login being saved is checked with `list_environment_credentials`. The preload list adds `add_environment_credential`, `list_environment_credentials` and `run_by_tag`.
+- **crawl-to-tests/reference.md:** cross-references name SKILL.md sections.
+- **connect-proofarc.sh:** prints the address and server name it uses.
+
 ## 0.3.2 — 2026-10-02
 - **crawl-to-tests:** nine non-negotiable test rules now come first. Command table, selector and parameter detail, and the wrong-vs-right example moved to `crawl-to-tests/reference.md`.
 - **crawl-to-tests:** suggested tests must follow the rules (no opening a record directly) and name the check they end with.
@@ -13,7 +19,7 @@
 - **project-setup:** `create_application` signature includes `application_type`.
 - **run-test:** proving a test can fail names the update tools, and the test must be green again afterwards.
 - **connect-proofarc.sh:** handles `host:port`, paths and addresses without `https://`.
-- Reviewed by Fable (20 findings on 0.3.1).
+- Reviewed by Fable before it was released (20 findings on 0.3.1). **0.3.2 itself was pushed before its own review**, which broke the new rule; that review's findings are fixed in 0.3.3.
 
 ## 0.3.1 — 2026-10-02
 - **crawl-to-tests:**

@@ -14,6 +14,7 @@ NAME="proofarc-${HOST%%.*}"; NAME="${NAME/proofarc-ui-/proofarc-}"
 command -v claude  >/dev/null || { echo "Claude Code is not installed: https://claude.com/claude-code"; exit 1; }
 command -v python3 >/dev/null || { echo "python3 is required"; exit 1; }
 
+echo "Using $BASE (server name: $NAME)"
 read -r  -p "ProofArc username: " PA_USER
 read -rs -p "ProofArc password: " PA_PASS; echo
 

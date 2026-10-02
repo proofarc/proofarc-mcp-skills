@@ -3,22 +3,13 @@ name: webui-test
 description: Reference for writing a single Playwright UI test YAML by hand when the user already has exact steps and selectors. Not a starting point — for any "test my website" / "create UI tests" request use crawl-to-tests, whose rules take precedence.
 ---
 
-# Web UI test — from the crawl to a validated test
+# Web UI test: one test by hand
 
-Start with: the target (from `project-setup`) and the list of behaviours to prove (from `create-test`).
+Use this only when the user has given exact steps and selectors. Otherwise stop and use `crawl-to-tests`. Its **Non-negotiable test rules** apply here too: no record ids, wait for each page's content (`timeout:` in ms), `{{baseUrl}}/path`, `expectedText` for checks, `CLEAR` before `SEND_KEYS`, `SELECT_BY_TEXT` for dropdowns, selectors only from the crawl, and end with an outcome check.
 
-## 1. Crawl — reuse before you wait
+## 1. Selectors come from the stored crawl
 
-`ensure_crawl_for_authoring(url, max_depth=1)` returns a stored crawl instantly when one is recent (under `maxAgeHours`, 24) and deep enough; otherwise it crawls (1–2 minutes for ~40 pages). Tell the user which happened — e.g. "Reused a crawl from 40 minutes ago: 18 pages." Pass `force_refresh=True` only if they want the latest version of the site.
-
-**Search the crawl — never read all of it.** A full crawl is 70–120k characters; a search for the elements you need is a few hundred.
-1. From `ensure_crawl_for_authoring` take only `jobId`, `fresh`, `ageHours` and the stats. For the page list: `ensure_crawl_for_authoring(url, level="index")` or `get_crawl_results(job_id)` (url, title, element count per page).
-2. Search for exactly the elements the test needs: `get_crawl_results(job_id, page_url=…, text=…, type=…, role=…, stable_only=…, limit=…, fields=[…])` — e.g. `text="Search", type="button"` on the home page returns one element in ~270 characters.
-3. If a result is still too large to display and gets saved to a file, **don't dig through the file** — narrow the search instead.
-
-- Crawls use a real browser (Playwright): single-page apps (React, Angular, Vue) work, and an almost empty HTML page is normal for them.
-- A site behind a login stops at the login page unless the environment has a credential.
-- A running crawl can't be stopped. Keep `max_depth` at 1 unless the user asks for more.
+`get_crawl_digest(target, page=…, text=…, type=…)` returns just the elements you need. If the target has no crawl, use `crawl-to-tests`, which offers to crawl.
 
 ## 2. Choose selectors from the crawl
 
@@ -39,15 +30,21 @@ steps:
 - action: WAIT_FOR_VISIBLE
   selector: "#search-query"
   timeout: 15000
+- action: CLEAR
+  selector: "#search-query"
 - action: SEND_KEYS
   selector: "#search-query"
   value: "pliers"
 - action: CLICK
-  selector: 'button.btn:has-text("Search")'   # as returned by the crawl
-- action: WAIT_FOR_TEXT
-  selector: body
+  selector: 'button:has-text("Search")'
+- action: WAIT_FOR_VISIBLE
+  selector: 'a.card:has-text("Pliers")'
+  timeout: 15000
+- action: VALIDATE_TEXT
+  selector: 'a.card:has-text("Pliers")'
   expectedText: "Pliers"
 - action: TAKE_SCREENSHOT
+  filename: "search-results"
 ```
 
 - `{{baseUrl}}/path` — always with the leading slash; `{{baseUrl}}` has no trailing slash.

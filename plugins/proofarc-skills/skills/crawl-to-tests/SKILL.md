@@ -31,7 +31,7 @@ Full selector and parameter detail, a wrong-vs-right example, and the command ta
 
 **Which ProofArc first.** If more than one ProofArc server is connected (tool names `mcp__<server>__…`), ask which instance to use before anything else, and use only that server's tools from then on. With one server, use it without asking.
 
-**Load the tools in one search at the start** (note that `list_targets` is called with no arguments in step 1), by full name: `select:mcp__<server>__list_applications,mcp__<server>__list_application_projects,…` for `list_applications`, `list_application_projects`, `list_environments`, `list_targets`, `get_crawl_digest`, `crawl_by_target`, `advise_ui`, `find_playbooks`, `get_playbook`, `validate_ui_test_yaml`, `create_ui_test_from_yaml`, `run_ui_test`, `get_execution_status`, `get_crawl_results`, `set_target_auth`, `list_ui_test_actions`, `update_ui_test_from_yaml`. Short names without the prefix don't match.
+**Load the tools in one search at the start** (note that `list_targets` is called with no arguments in step 1), by full name: `select:mcp__<server>__list_applications,mcp__<server>__list_application_projects,…` for `list_applications`, `list_application_projects`, `list_environments`, `list_targets`, `get_crawl_digest`, `crawl_by_target`, `advise_ui`, `find_playbooks`, `get_playbook`, `validate_ui_test_yaml`, `create_ui_test_from_yaml`, `run_ui_test`, `get_execution_status`, `get_crawl_results`, `set_target_auth`, `list_ui_test_actions`, `update_ui_test_from_yaml`, `add_environment_credential`, `list_environment_credentials`, `run_by_tag`. Short names without the prefix don't match.
 
 ## 1. Which application: shown by its address
 
@@ -63,7 +63,7 @@ Join them, and keep the applications that have a `WEB_APP` target (or a web type
 ## 3. Which environment
 
 - `list_environments(project)`. Filter the step-1 `list_targets()` result by `environmentName`; don't call `list_targets` again.
-- Offer only environments that have a **`WEB_APP` target bound to this application**. Show each one's target address and whether it has a login saved:
+- Offer only environments that have a **`WEB_APP` target bound to this application**. Show each one's target address and whether it has a login saved (`list_environment_credentials(environment)`):
   > 1. **staging**: `https://shop.example.com`, login `qa-user` *(recommended)*
   > 2. **dev**: `https://dev.shop.example.com`, no login
   > 3. New environment
@@ -183,26 +183,24 @@ When the user describes one:
    - Then `get_playbook(id)` and keep to its beats and gotchas.
 2. **Fetch just the elements it needs:** `get_crawl_digest(target, page=…, type=…, text=…)`.
 3. **Ask the one open detail, as options.** For example: *"Search for which product? 1. Pliers (on the site) 2. Your own"*.
-4. **Show the plan in plain words, not YAML, then confirm.** Run `validate_ui_test_yaml` on the draft before showing the plan, so you never offer a test the platform would refuse:
+4. **Draft, check, then show the plan in plain words (not YAML).** Before drafting the first test of the session, read `reference.md` in this skill's folder. Check the draft against the **Non-negotiable test rules** and run `validate_ui_test_yaml` on it, so you never offer a test the platform would refuse:
    > *Search finds pliers*: open home → type `pliers` in **Search** → press **Search** → wait → check **Pliers** appears.
    > 1. Create it 2. Change something
 
 ## 8. Build, run, prove
 
-Check the plan against the **Non-negotiable test rules** at the top before showing it.
+### Build and run
+1. `validate_ui_test_yaml`, then `create_ui_test_from_yaml(project, yaml_text, name, target="<target id>", tags="from-crawl")`.
+2. `run_ui_test(test, environment, target="<target id>", drivers=["PLAYWRIGHT"], wait=True)`. Read `testOutcome`, not `status`.
+3. **Prove it can fail.** Use `update_ui_test_from_yaml` to change the final expected value, run the test and see it fail, then restore it, re-run, and **confirm it's green again** before reporting.
+4. Report in one line: *✓ Search finds pliers: passed, and fails when the expected name is wrong.*
+5. If it fails, follow "When a run fails" below. Never loosen a check just to make it pass.
 
 ### When a run fails: fix your own mistakes, ask only about the site
 1. Read the failing step and its message.
 2. **If it's a test-writing mistake**, fix it with `update_ui_test_from_yaml` and re-run without asking. That covers a missing wait, a wrong parameter, a selector not from the crawl, a record id, or the wrong action for a dropdown. Then report once: *"Step 7 failed because it didn't wait for the product page; added the wait; ✓ passes now."*
 3. **Ask only when the site itself behaves unexpectedly**, with the correct steps in place: *"The page loads but shows no Add to cart button. 1. The site is wrong, keep it as a finding 2. I misread the page, tell me what should happen"*.
 4. **Never offer options that break the rules**, such as "use another product id", "skip the wait" or "skip this test" as a fix.
-
-### Then
-1. `validate_ui_test_yaml`, then `create_ui_test_from_yaml(project, yaml_text, name, target="<target id>", tags="from-crawl")`.
-2. `run_ui_test(test, environment, target="<target id>", drivers=["PLAYWRIGHT"], wait=True)`. Read `testOutcome`, not `status`.
-3. **Prove it can fail.** Use `update_ui_test_from_yaml` to change the final expected value, run the test and see it fail, then restore it, re-run, and **confirm it's green again** before reporting.
-4. Report in one line: *✓ Search finds pliers: passed, and fails when the expected name is wrong.*
-5. If it fails, follow "When a run fails" above. Never loosen a check just to make it pass.
 
 Then offer the remaining tests, `run all` (by the `from-crawl` tag), `report` (hand off to `test-report`), or `done`.
 
