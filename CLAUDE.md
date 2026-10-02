@@ -13,4 +13,4 @@
    - Trial behaviour changes with `claude -p … --model claude-haiku-4-5-20251001 --plugin-dir ./plugins/proofarc-skills`, connected only to the instance being used.
 5. **Push** only after steps 1–4. Record the review in the commit message (`Reviewed-by: Fable (<n> findings, all addressed)`).
 
-Trials only use projects Claude created (on OutpostQA, `skill-trial-crawl-to-tests`, 174), never a customer's project.
+Trials only use projects Claude created for trials, never a customer's project.

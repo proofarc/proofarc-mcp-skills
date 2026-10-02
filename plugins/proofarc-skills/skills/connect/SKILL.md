@@ -20,16 +20,16 @@ The script ships with this skill: `connect-proofarc.sh` in this skill's base dir
 ### 1. Check for saved credentials (never print them)
 
 ```bash
-zsh -ic 'for v in PROOFARC_URL PROOFARC_USERNAME PROOFARC_PASSWORD; do [ -n "${(P)v}" ] && echo "$v set" || echo "$v missing"; done'
+"$SHELL" -ic 'printenv PROOFARC_URL || echo "PROOFARC_URL missing"; for v in PROOFARC_USERNAME PROOFARC_PASSWORD; do printenv "$v" >/dev/null && echo "$v set" || echo "$v missing"; done'
 ```
-Only report which variables are set or missing. **Never echo, print or log their values.**
+This prints the saved **address** (it isn't secret) and only whether the username and password are set. **Never print, echo or log the username or password values.**
 
 ### 2a. All three are set: connect for the user
 
 ```bash
-zsh -ic 'bash "<this skill's base directory>/connect-proofarc.sh"' </dev/null
+"$SHELL" -ic 'bash "<this skill's base directory>/connect-proofarc.sh"' </dev/null
 ```
-The script reads the variables, logs in and registers the server as `proofarc-<company>`. Then tell the user: *"Connected to <PROOFARC_URL>. Restart Claude Code (or run `/mcp` → Reconnect), then ask me again."* If the user also mentioned a different address, pass it as the first argument; it takes priority over `PROOFARC_URL`.
+The script reads the variables, logs in and registers the server as `proofarc-<company>`. Then tell the user: *"Connected to <PROOFARC_URL>. Restart Claude Code (or run `/mcp` → Reconnect), then ask me again."* **Wrong-instance guard:** the saved username and password belong to the saved address. If the user named a different address than `PROOFARC_URL`, say so and ask before running anything: *"Your saved login is for <PROOFARC_URL>. 1. Connect there 2. Use <their address>; you'll type that login in your own terminal"*. For option 2, give them the command from 2b. Never send the saved credentials to another address.
 
 ### 2b. Some are missing: show the user what to add
 

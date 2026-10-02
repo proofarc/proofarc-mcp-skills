@@ -1,9 +1,11 @@
 # Changelog — proofarc-skills
 
 ## 0.3.4 — 2026-10-02
-- **No need to say "ProofArc":** plain requests start `crawl-to-tests` in an ordinary folder (12 of 12 runs over 4 phrasings, Haiku, all servers connected). A developer asking for Playwright code in their own repo with no ProofArc server doesn't trigger it (0 of 6). `create-test` gets the same treatment.
-- **Connecting with environment variables:** `connect-proofarc.sh` reads `PROOFARC_URL`, `PROOFARC_USERNAME` and `PROOFARC_PASSWORD` when they're set and asks only for what's missing, so Claude can connect for you. The `connect` skill checks which variables are set without printing them; if any are missing it shows the lines to add to `~/.zshrc`. Tested non-interactively against thoughtminds.
-- **crawl-to-tests description:** it now starts on plain requests that don't mention ProofArc ("create UI tests for Toolshop", "write some web tests for the shop"). In a normal working folder Haiku had been treating these as "write test code locally" and searching the disk. The description now says the tests are built on the connected ProofArc platform. Checked in `~/skill-trial` with every MCP server connected: 3 of 3 phrasings start the skill.
+- **No need to say "ProofArc":** plain requests such as "create UI tests for Toolshop" or "write some web tests for the shop" start `crawl-to-tests` in an ordinary folder. Before, Haiku treated them as "write test code locally" and searched the disk. A/B-tested with Haiku: 12 of 12 runs over 4 phrasings with ProofArc connected. A developer asking for Playwright code in their own repo with no ProofArc server doesn't trigger it (0 of 6), and the skill body says to stop in that case. `create-test` no longer requires the word ProofArc either.
+- **Connecting with environment variables:** `connect-proofarc.sh` reads `PROOFARC_URL`, `PROOFARC_USERNAME` and `PROOFARC_PASSWORD` when they're set and asks only for what's missing, so Claude can connect for you. It never prints the username or password. Without a terminal, a missing value is reported instead of hanging. Tested non-interactively against a live instance.
+- **connect skill:** checks which variables are set, using `printenv` in the user's own shell (works in zsh and bash) and showing only the address. If the user names a different address than `PROOFARC_URL`, it asks first and never sends saved credentials elsewhere. If variables are missing, it shows the lines to add to the shell profile.
+- **crawl-to-tests:** "not connected" now separates a configured server that failed (`/mcp` → Reconnect) from no server or a 401 (the `connect` skill). The app-list example uses neutral names.
+- Reviewed by Fable: 2 must-fix and 6 should-fix found, all addressed.
 
 ## 0.3.3 — 2026-10-02
 - **webui-test removed.** "create UI tests for Toolshop" was starting it instead of `crawl-to-tests`, because its description quoted that phrase to redirect it. It then asked for the project, URL and behaviours. Its action and error tables moved to `crawl-to-tests/reference.md`. There's now one way into web UI testing.
@@ -11,7 +13,7 @@
 - **crawl-to-tests/reference.md:** cross-references name SKILL.md sections.
 - **connect-proofarc.sh:** prints the address and server name it uses.
 - **crawl-to-tests:** `run all` names its call: `run_by_tag` (dry run first).
-- Reviewed by Fable before release: 9 findings on 0.3.2 fixed, then 2 must-fix and 4 should-fix on 0.3.3 fixed. "`target` is the id" was confirmed live on dev and OutpostQA.
+- Reviewed by Fable before release: 9 findings on 0.3.2 fixed, then 2 must-fix and 4 should-fix on 0.3.3 fixed. "`target` is the id" was confirmed on live instances.
 
 ## 0.3.2 — 2026-10-02
 - **crawl-to-tests:** nine non-negotiable test rules now come first. Command table, selector and parameter detail, and the wrong-vs-right example moved to `crawl-to-tests/reference.md`.

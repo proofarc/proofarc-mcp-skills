@@ -25,8 +25,8 @@ Full selector and parameter detail, a wrong-vs-right example, and the command ta
 **Every reply ends with numbered choices** the user can answer with a number. If the `AskUserQuestion` tool is available, use it. Mark a sensible default *(recommended)*. Ask one thing per reply.
 
 **ProofArc not connected?** A "failed to connect" notice at the start of a session isn't final: the server may only have been unreachable for a moment. Before telling the user anything is unavailable, check whether any `mcp__proofarc…` tools are listed.
-- If none are, ask the user to type `/mcp`, pick their ProofArc server and choose **Reconnect**, then continue.
-- If no ProofArc server is connected, or it answers 401, follow the `connect` skill. If `PROOFARC_URL`, `PROOFARC_USERNAME` and `PROOFARC_PASSWORD` are set in the user's shell, it connects without asking. Otherwise it shows the user the three lines to add to `~/.zshrc`.
+- **A ProofArc server is configured but failed to connect:** ask the user to type `/mcp`, pick it and choose **Reconnect**, then continue.
+- **No ProofArc server is configured, or tools answer 401:** follow the `connect` skill. If `PROOFARC_URL`, `PROOFARC_USERNAME` and `PROOFARC_PASSWORD` are set in the user's shell, it connects without asking. Otherwise it shows the user the three lines to add to their shell profile.
 - Ignore a failing `claude.ai proofarc` connector when another ProofArc server works.
 - If **no** ProofArc server is configured at all and the user wants test code in their own repo, this skill doesn't apply. Say so and stop.
 
@@ -43,9 +43,9 @@ People know their app by its address, not by its ProofArc name. These are MCP to
 Join them, and keep the applications that have a `WEB_APP` target (or a web type or interface). Show **the application's name as it is**, then its **target host**, then the **environments that have that target**. Those environments are where it can run:
 
 > Which app do you want to test?
-> 1. **Toolshop web (trial)**: `practicesoftwaretesting.com`, env `toolshop-trial`
-> 2. **user-service-ui**: `user-service-ui-devdemo.proofarc.ai`, envs `production`, `qa454-lite`
-> 3. **coppel**: `www.coppel.com`, env `dev`
+> 1. **Toolshop web**: `practicesoftwaretesting.com`, env `staging`
+> 2. **Shop admin**: `admin.example.com`, envs `dev`, `staging`
+> 3. **Marketing site**: `www.example.com`, env `prod`
 > 4. A different app or address
 >
 > Or just paste the address.
