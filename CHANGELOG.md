@@ -1,5 +1,8 @@
 # Changelog — proofarc-skills
 
+## 0.3.4 — 2026-10-02
+- **crawl-to-tests description:** it now starts on plain requests that don't mention ProofArc ("create UI tests for Toolshop", "write some web tests for the shop"). In a normal working folder Haiku had been treating these as "write test code locally" and searching the disk. The description now says the tests are built on the connected ProofArc platform. Checked in `~/skill-trial` with every MCP server connected: 3 of 3 phrasings start the skill.
+
 ## 0.3.3 — 2026-10-02
 - **webui-test removed.** "create UI tests for Toolshop" was starting it instead of `crawl-to-tests`, because its description quoted that phrase to redirect it. It then asked for the project, URL and behaviours. Its action and error tables moved to `crawl-to-tests/reference.md`. There's now one way into web UI testing.
 - **crawl-to-tests:** §8 is in order (build and run, then what to do when a run fails). The skill reads `reference.md` before drafting the first test. A login being saved is checked with `list_environment_credentials`. The preload list adds `add_environment_credential`, `list_environment_credentials` and `run_by_tag`.

@@ -1,6 +1,6 @@
 ---
 name: crawl-to-tests
-description: Use for ANY request to test a website or web app with ProofArc — "test my website", "test <url>", "create/build/write UI tests", "web tests for <app>", "what can I test on <site>", "suggest tests", "build tests from the crawl", "find the screen with …", or a link to a crawl run. Interactive: picks the application, project and environment, reads or runs the crawl of that site, explains what the app does and how testable it is, suggests scenarios and tests (or maps the user's own scenario onto the crawl), then builds, runs and proves the ones the user picks. Web UI only.
+description: Use whenever the user asks to create, write, build or suggest UI / web / browser tests for a site or app — "create UI tests for Toolshop", "test my website", "test https://…", "web tests for <app>", "what can I test on <site>", "find the screen with …" — even when ProofArc isn't mentioned. Tests are built and run on the connected ProofArc platform (its mcp__…proofarc… tools), not as Playwright/Cypress code on disk, so don't search the local folder for code first. Interactive: pick the app, project and environment, read or run the crawl, suggest tests or map the user's scenario, then build, run and prove them. Web UI only.
 ---
 
 # From crawl to web UI tests: an interactive guide
