@@ -17,13 +17,15 @@ Skills that guide your agent through testing with [ProofArc](https://proofarc.ai
 /plugin install proofarc-skills@proofarc
 ```
 
-**2. Connect to your ProofArc.** Ask Claude *"connect me to ProofArc"*. It gives you a command like this one to run **in your own terminal**:
+**2. Connect to your ProofArc.** The easiest way is to put your details in `~/.zshrc` (or `~/.bashrc`) and open a new terminal:
 
-```
-bash <path>/connect-proofarc.sh https://ui-<company>.proofarc.ai
+```bash
+export PROOFARC_URL="https://ui-<company>.proofarc.ai"
+export PROOFARC_USERNAME="<your username>"
+export PROOFARC_PASSWORD="<your password>"
 ```
 
-Enter your username and password when asked. The password isn't shown or saved.
+Then ask Claude *"connect me"*: it connects for you, without ever showing the password. Without those variables, it gives you a command to run in your own terminal that asks for them.
 
 **3. Restart Claude Code**, then ask *"list my ProofArc projects"*. Seeing your projects means you're ready.
 

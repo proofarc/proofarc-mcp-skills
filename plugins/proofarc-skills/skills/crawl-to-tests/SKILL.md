@@ -1,6 +1,6 @@
 ---
 name: crawl-to-tests
-description: Use whenever the user asks to create, write, build or suggest UI / web / browser tests for a site or app — "create UI tests for Toolshop", "test my website", "test https://…", "web tests for <app>", "what can I test on <site>", "find the screen with …" — even when ProofArc isn't mentioned. Tests are built and run on the connected ProofArc platform (its mcp__…proofarc… tools), not as Playwright/Cypress code on disk, so don't search the local folder for code first. Interactive: pick the app, project and environment, read or run the crawl, suggest tests or map the user's scenario, then build, run and prove them. Web UI only.
+description: Use whenever the user asks to create, write, build or suggest UI / web / browser tests for a site or app — "create UI tests for Toolshop", "test my website", "test https://…", "web tests for <app>", "write some web tests for the shop", "what can I test on <site>", "find the screen with …" — even when ProofArc isn't mentioned. The tests are built and run on the connected ProofArc platform (its mcp__…proofarc… tools), not as Playwright/Cypress files on disk, so don't search the local folder for code. Interactive: pick the app, project and environment, read or run the crawl, suggest tests or map the user's scenario, then build, run and prove them. Web UI only. Skip it only when no ProofArc MCP server is configured and the user wants test code written into their own repo.
 ---
 
 # From crawl to web UI tests: an interactive guide
@@ -26,8 +26,9 @@ Full selector and parameter detail, a wrong-vs-right example, and the command ta
 
 **ProofArc not connected?** A "failed to connect" notice at the start of a session isn't final: the server may only have been unreachable for a moment. Before telling the user anything is unavailable, check whether any `mcp__proofarc…` tools are listed.
 - If none are, ask the user to type `/mcp`, pick their ProofArc server and choose **Reconnect**, then continue.
-- If it answers 401, use the `connect` skill.
+- If no ProofArc server is connected, or it answers 401, follow the `connect` skill. If `PROOFARC_URL`, `PROOFARC_USERNAME` and `PROOFARC_PASSWORD` are set in the user's shell, it connects without asking. Otherwise it shows the user the three lines to add to `~/.zshrc`.
 - Ignore a failing `claude.ai proofarc` connector when another ProofArc server works.
+- If **no** ProofArc server is configured at all and the user wants test code in their own repo, this skill doesn't apply. Say so and stop.
 
 **Which ProofArc first.** If more than one ProofArc server is connected (tool names `mcp__<server>__…`), ask which instance to use before anything else, and use only that server's tools from then on. With one server, use it without asking.
 

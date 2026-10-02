@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Connect Claude Code to a ProofArc instance over MCP.
-# Usage:  bash connect-proofarc.sh https://ui-<company>.proofarc.ai
-# Asks for your ProofArc username and password; the password is not shown or saved.
+# Usage:  bash connect-proofarc.sh [https://ui-<company>.proofarc.ai]
+# Reads PROOFARC_URL, PROOFARC_USERNAME and PROOFARC_PASSWORD from the environment when set
+# (e.g. exported in ~/.zshrc); asks only for what is missing. The password is never printed or saved.
 # Rerun it when ProofArc tools start answering 401 / unauthorized.
 set -euo pipefail
-BASE="${1:-}"
+BASE="${1:-${PROOFARC_URL:-}}"
 [ -n "$BASE" ] || read -r -p "ProofArc address (e.g. https://ui-company.proofarc.ai): " BASE
 [[ "$BASE" == *://* ]] || BASE="https://$BASE"
 BASE="${BASE%/}"
@@ -15,8 +16,9 @@ command -v claude  >/dev/null || { echo "Claude Code is not installed: https://c
 command -v python3 >/dev/null || { echo "python3 is required"; exit 1; }
 
 echo "Using $BASE (server name: $NAME)"
-read -r  -p "ProofArc username: " PA_USER
-read -rs -p "ProofArc password: " PA_PASS; echo
+PA_USER="${PROOFARC_USERNAME:-}"; PA_PASS="${PROOFARC_PASSWORD:-}"
+if [ -n "$PA_USER" ]; then echo "Username from PROOFARC_USERNAME: $PA_USER"; else read -r -p "ProofArc username: " PA_USER; fi
+if [ -n "$PA_PASS" ]; then echo "Password from PROOFARC_PASSWORD (not shown)"; else read -rs -p "ProofArc password: " PA_PASS; echo; fi
 
 TOKEN=$(PA_USER="$PA_USER" PA_PASS="$PA_PASS" python3 - "$BASE" <<'PY'
 import json, os, sys, urllib.request

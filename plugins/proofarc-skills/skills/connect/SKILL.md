@@ -15,22 +15,47 @@ ProofArc's MCP server is at `https://<your-instance>/mcp`. It accepts a login to
 
 ## Connect, or reconnect
 
-The script ships with this skill: `connect-proofarc.sh` in this skill's base directory. Give the user the full path.
+The script ships with this skill: `connect-proofarc.sh` in this skill's base directory.
 
-**The person runs it in their own terminal, not the agent: it asks for a password.**
+### 1. Check for saved credentials (never print them)
 
 ```bash
-bash "<this skill's base directory>/connect-proofarc.sh" https://ui-<company>.proofarc.ai
+zsh -ic 'for v in PROOFARC_URL PROOFARC_USERNAME PROOFARC_PASSWORD; do [ -n "${(P)v}" ] && echo "$v set" || echo "$v missing"; done'
 ```
+Only report which variables are set or missing. **Never echo, print or log their values.**
 
-- It asks for the ProofArc username and password. The password isn't shown or saved.
-- It logs in and registers the instance as an MCP server named `proofarc-<company>`.
-- Afterwards the user must **restart Claude Code**, then ask *"list my ProofArc projects"*.
+### 2a. All three are set: connect for the user
+
+```bash
+zsh -ic 'bash "<this skill's base directory>/connect-proofarc.sh"' </dev/null
+```
+The script reads the variables, logs in and registers the server as `proofarc-<company>`. Then tell the user: *"Connected to <PROOFARC_URL>. Restart Claude Code (or run `/mcp` → Reconnect), then ask me again."* If the user also mentioned a different address, pass it as the first argument; it takes priority over `PROOFARC_URL`.
+
+### 2b. Some are missing: show the user what to add
+
+> To connect without typing your password each time, add these lines to `~/.zshrc` (or `~/.bashrc`), then open a new terminal:
+> ```bash
+> export PROOFARC_URL="https://ui-<company>.proofarc.ai"
+> export PROOFARC_USERNAME="<your ProofArc username>"
+> export PROOFARC_PASSWORD="<your ProofArc password>"
+> ```
+> Or run this once in your own terminal; it asks for whatever is missing:
+> ```bash
+> bash "<this skill's base directory>/connect-proofarc.sh" https://ui-<company>.proofarc.ai
+> ```
+
+Give the real path in place of the placeholder. Never ask the user to paste a password into the chat.
+
+### After connecting
+
+- The user must **restart Claude Code** (or `/mcp` → Reconnect), then ask *"list my ProofArc projects"*.
+- The token is valid for up to 30 days. When tools answer 401, run the script again.
 - It needs `bash` and `python3`. On Windows, use WSL or Git Bash.
 
 ## Rules
 
-- Never ask the user to paste their password into the chat. They type it into the terminal prompt.
+- Never ask the user to paste their password into the chat. It comes from `PROOFARC_PASSWORD`, or the user types it at the script's prompt in their own terminal.
+- Never print the values of `PROOFARC_USERNAME` or `PROOFARC_PASSWORD` in a command's output or a reply.
 - Use one login per person. Don't share an admin login for MCP use; ask an admin to create a user with the ANALYST role.
 - Each instance is a separate deployment. Never copy URLs, ids or targets from one instance to another; check on the instance you're connected to.
 - If the login call fails with 403, the instance's firewall may be blocking the default client. The script sends a `User-Agent` header that the instances accept.

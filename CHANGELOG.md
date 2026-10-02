@@ -1,6 +1,8 @@
 # Changelog — proofarc-skills
 
 ## 0.3.4 — 2026-10-02
+- **No need to say "ProofArc":** plain requests start `crawl-to-tests` in an ordinary folder (12 of 12 runs over 4 phrasings, Haiku, all servers connected). A developer asking for Playwright code in their own repo with no ProofArc server doesn't trigger it (0 of 6). `create-test` gets the same treatment.
+- **Connecting with environment variables:** `connect-proofarc.sh` reads `PROOFARC_URL`, `PROOFARC_USERNAME` and `PROOFARC_PASSWORD` when they're set and asks only for what's missing, so Claude can connect for you. The `connect` skill checks which variables are set without printing them; if any are missing it shows the lines to add to `~/.zshrc`. Tested non-interactively against thoughtminds.
 - **crawl-to-tests description:** it now starts on plain requests that don't mention ProofArc ("create UI tests for Toolshop", "write some web tests for the shop"). In a normal working folder Haiku had been treating these as "write test code locally" and searching the disk. The description now says the tests are built on the connected ProofArc platform. Checked in `~/skill-trial` with every MCP server connected: 3 of 3 phrasings start the skill.
 
 ## 0.3.3 — 2026-10-02

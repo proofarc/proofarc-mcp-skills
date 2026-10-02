@@ -1,6 +1,6 @@
 ---
 name: create-test
-description: Start here when a ProofArc user wants to create a test but hasn't said what kind — "I want to create a test", "test my app", "add a test", "help me test this" — work out the kind (web UI, API, mobile, performance, security) and what it should prove, then hand off. A website or URL goes straight to crawl-to-tests.
+description: Start here when the user wants (with a ProofArc MCP server connected, even if ProofArc isn't mentioned) to create a test but hasn't said what kind — "I want to create a test", "test my app", "add a test", "help me test this" — work out the kind (web UI, API, mobile, performance, security) and what it should prove, then hand off. A website or URL goes straight to crawl-to-tests.
 ---
 
 # Create a test — find the intent first
