@@ -1,6 +1,6 @@
 ---
 name: create-test
-description: Start here whenever a ProofArc user wants to create, write or build a test, or says "test my website", "test this app", "test this API" — work out what kind of test they want and what it should prove, then hand off to the right skill. Use before project-setup and the test-writing skills (webui-test, api-test, mobile-test, performance-test).
+description: Start here when a ProofArc user wants to create a test but hasn't said what kind — "I want to create a test", "test my app", "add a test", "help me test this" — work out the kind (web UI, API, mobile, performance, security) and what it should prove, then hand off. A website or URL goes straight to crawl-to-tests.
 ---
 
 # Create a test — find the intent first
@@ -48,7 +48,7 @@ Note whether the behaviour **needs a login**. If it does, the setup needs a cred
 
 | Kind | Next |
 |---|---|
-| Web UI | `project-setup` (interface `WEB_UI`) → `webui-test` → `run-test`. If the user has a crawl or a run link, or doesn't know what to test, use `crawl-to-tests` instead. |
+| Web UI | `crawl-to-tests`: it handles setup, the crawl, suggestions, building and running. |
 | API | `project-setup` (interface `REST`) → `api-test` → `run-test` |
 | Mobile | `project-setup` (interface `MOBILE_UI`) → `mobile-test` (it runs the test too) |
 | Performance | an API scenario that passes (`api-test` if there isn't one) → `performance-test` |

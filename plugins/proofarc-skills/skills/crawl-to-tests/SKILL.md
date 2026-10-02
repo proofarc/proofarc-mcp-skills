@@ -1,6 +1,6 @@
 ---
 name: crawl-to-tests
-description: Interactive guide for web UI tests built from ProofArc's crawl of an application — pick the application, project and environment, read (or run) the crawl of that environment's website target, explain what the app does and how testable it is, suggest scenarios and tests, answer "find …" questions about screens and elements, then build, run and prove the tests the user picks. Use when the user wants web UI tests for an app, shares a crawl or run link (…/scans/<id>), or says "build tests from the crawl", "what can I test", "suggest tests", "find the screen with …".
+description: Use for ANY request to test a website or web app with ProofArc — "test my website", "test <url>", "create/build/write UI tests", "web tests for <app>", "what can I test on <site>", "suggest tests", "build tests from the crawl", "find the screen with …", or a ProofArc run link (…/scans/<id>). Interactive: picks the application, project and environment, reads or runs the crawl of that site, explains what the app does and how testable it is, suggests scenarios and tests (or maps the user's own scenario onto the crawl), then builds, runs and proves the ones the user picks. Web UI only.
 ---
 
 # From crawl to web UI tests: an interactive guide
@@ -182,6 +182,20 @@ When the user describes one:
    > 1. Create it 2. Change something
 
 ## 8. Build, run, prove
+
+### Before showing a plan, check it against this list. Don't ask the user about any of it.
+- Every step that uses an element comes after a wait for **content of that page** (`WAIT_FOR_VISIBLE`/`WAIT_FOR_TEXT` with `timeout:` in ms). That's always required, not an option to offer.
+- No record ids anywhere (`/product/01M3…`). Reach records through the UI and click them **by visible name** (`a:has-text("Combination Pliers")`), never "the first result".
+- No `CLICK` on a field before typing into it: `CLEAR`, then `SEND_KEYS`.
+- Dropdowns use `SELECT_BY_TEXT` with the exact option text.
+- **The test ends by asserting the outcome** the user asked about: the cart count is 1, the results list Pliers, the error text appears. A screenshot is evidence, not a check.
+
+### When a run fails: fix your own mistakes, ask only about the site
+1. Read the failing step and its message.
+2. **If it's a test-writing mistake**, fix it and re-run without asking: a missing wait, a wrong parameter, a selector not from the crawl, a record id, the wrong action for a dropdown. Then report once: *"Step 7 failed because it didn't wait for the product page; added the wait; ✓ passes now."*
+3. **Ask only when the site itself behaves unexpectedly**, with the correct steps in place: *"The page loads but shows no Add to cart button. 1. The site is wrong, keep it as a finding 2. I misread the page, tell me what should happen"*.
+4. **Never offer options that break these rules**, such as "use another product id", "skip the wait" or "skip this test" as a fix. They waste a round trip and the user has to reject them.
+
 
 **Selectors:**
 - **No record ids in a test.** A URL or selector containing an id from the data (`/product/01M3FZ5CD4BXK3PFN6RCYZ3SXY`, `#order-4711`) breaks when the data changes. Get to the record **through the UI**: open the listing, then click the item by its visible name (`a:has-text("Combination Pliers")`). Its name is unique and readable. A bare pattern like `a[href^="/product/"]` matches every product, and clicks only the first one on Playwright, which differs from WebDriver.
