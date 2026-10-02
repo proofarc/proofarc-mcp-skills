@@ -177,6 +177,7 @@ All of these read the target's stored crawl with `get_crawl_digest(target, …)`
 - `NAVIGATE_TO` takes `url:`.
 - Waits take `timeout:` in **milliseconds** (`10000`). A `value: "5"` on a wait does nothing and falls back to 30 s.
 - `VALIDATE_TITLE`, `VALIDATE_TEXT` and `WAIT_FOR_TEXT` take `expectedText:`. `value:` is only for typing (`SEND_KEYS`).
+- **Dropdowns (`<select>`) use `SELECT_BY_TEXT`** with `value:` set to the option's visible text, for example `"Price (Low - High)"`. `SEND_KEYS` fails on a select. The crawl may list a dropdown as `type: input`, so treat a sort, filter or category control as a dropdown.
 - **Wait for something on the page you navigated to**, such as its form, list or heading from the crawl, not the site's header or menu. A header element is on every page, so waiting for it proves nothing.
 
 Example (validated):
