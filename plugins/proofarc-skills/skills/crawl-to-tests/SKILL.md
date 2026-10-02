@@ -190,7 +190,7 @@ When the user describes one:
 ## 8. Build, run, prove
 
 ### Build and run
-1. `validate_ui_test_yaml`, then `create_ui_test_from_yaml(project, yaml_text, name, target="<target id>", tags="from-crawl")`.
+1. If the plan changed after §7, run `validate_ui_test_yaml` again. Then `create_ui_test_from_yaml(project, yaml_text, name, target="<target id>", tags="from-crawl")`.
 2. `run_ui_test(test, environment, target="<target id>", drivers=["PLAYWRIGHT"], wait=True)`. Read `testOutcome`, not `status`.
 3. **Prove it can fail.** Use `update_ui_test_from_yaml` to change the final expected value, run the test and see it fail, then restore it, re-run, and **confirm it's green again** before reporting.
 4. Report in one line: *✓ Search finds pliers: passed, and fails when the expected name is wrong.*
@@ -202,7 +202,7 @@ When the user describes one:
 3. **Ask only when the site itself behaves unexpectedly**, with the correct steps in place: *"The page loads but shows no Add to cart button. 1. The site is wrong, keep it as a finding 2. I misread the page, tell me what should happen"*.
 4. **Never offer options that break the rules**, such as "use another product id", "skip the wait" or "skip this test" as a fix.
 
-Then offer the remaining tests, `run all` (by the `from-crawl` tag), `report` (hand off to `test-report`), or `done`.
+Then offer the remaining tests, `run all` (`run_by_tag(tags=["from-crawl"], project, environment, kinds=["ui"], dry_run=True)` to show what would run, then again without `dry_run`), `report` (hand off to `test-report`), or `done`.
 
 
 ## 9. Done

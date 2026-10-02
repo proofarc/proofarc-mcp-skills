@@ -38,7 +38,6 @@ Enter your username and password when asked. The password isn't shown or saved.
 | `create-test` | Starts when you haven't said what kind of test. Works out the kind (web UI, API, mobile, performance, security), then hands off. A website goes straight to `crawl-to-tests`. |
 | `project-setup` | Makes sure the project, application, environment and target exist (and a login credential, if needed). Reuses what's there; creates only what's missing. |
 | `crawl-to-tests` | Interactive: reads a finished crawl (or a run link like `…/scans/149`), suggests tests the site supports, and walks you through building them one choice at a time. |
-| `webui-test` | Reference for writing one UI test by hand when you already know the exact steps and selectors. For everything else, use `crawl-to-tests`. |
 | `api-test` | Finds the API spec, reads only the operations needed, and writes one validated scenario per behaviour, with logins by tag. |
 | `mobile-test` | Registers the app on the device farm, takes element ids from the uploaded build, writes the test, and runs it on a real device. |
 | `performance-test` | Turns a passing API scenario into a load test with response-time and error-rate limits, dry-runs it, runs it, and reports p95 and errors. |

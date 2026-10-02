@@ -1,10 +1,12 @@
 # Changelog — proofarc-skills
 
 ## 0.3.3 — 2026-10-02
-- **webui-test:** the body now matches its reference-only role. It points to `crawl-to-tests`, applies the same rules, and reads selectors from the stored crawl. Its example uses `CLEAR`, a page-specific wait, and an outcome check.
+- **webui-test removed.** "create UI tests for Toolshop" was starting it instead of `crawl-to-tests`, because its description quoted that phrase to redirect it. It then asked for the project, URL and behaviours. Its action and error tables moved to `crawl-to-tests/reference.md`. There's now one way into web UI testing.
 - **crawl-to-tests:** §8 is in order (build and run, then what to do when a run fails). The skill reads `reference.md` before drafting the first test. A login being saved is checked with `list_environment_credentials`. The preload list adds `add_environment_credential`, `list_environment_credentials` and `run_by_tag`.
 - **crawl-to-tests/reference.md:** cross-references name SKILL.md sections.
 - **connect-proofarc.sh:** prints the address and server name it uses.
+- **crawl-to-tests:** `run all` names its call: `run_by_tag` (dry run first).
+- Reviewed by Fable before release: 9 findings on 0.3.2 fixed, then 2 must-fix and 4 should-fix on 0.3.3 fixed. "`target` is the id" was confirmed live on dev and OutpostQA.
 
 ## 0.3.2 — 2026-10-02
 - **crawl-to-tests:** nine non-negotiable test rules now come first. Command table, selector and parameter detail, and the wrong-vs-right example moved to `crawl-to-tests/reference.md`.
@@ -19,7 +21,7 @@
 - **project-setup:** `create_application` signature includes `application_type`.
 - **run-test:** proving a test can fail names the update tools, and the test must be green again afterwards.
 - **connect-proofarc.sh:** handles `host:port`, paths and addresses without `https://`.
-- Reviewed by Fable before it was released (20 findings on 0.3.1). **0.3.2 itself was pushed before its own review**, which broke the new rule; that review's findings are fixed in 0.3.3.
+- Fixes the 20 findings from Fable's review of 0.3.1. 0.3.2 itself was pushed before its own review; that review's findings are fixed in 0.3.3.
 
 ## 0.3.1 — 2026-10-02
 - **crawl-to-tests:**
