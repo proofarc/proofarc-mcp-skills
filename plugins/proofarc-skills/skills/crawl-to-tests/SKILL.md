@@ -119,7 +119,7 @@ Work through this checklist **before** writing the list. Weaker models skip it, 
 3. **Each item says what it covers** (pages, feature) and **what it changes**: *nothing*, *this browser's cart only*, or *sends data*. Read-only and browser-only items come first. Never offer purchases, deletions or account creation unless the user asks.
 4. **Edge cases only where the crawl shows the input exists.**
    - An empty search is fine if there's a search box. An invalid email is fine if there's an email field.
-   - **Never** suggest a case the crawl gives no sign of, such as "out of stock" or "payment declined". Check with `get_crawl_digest(target, text="<word>")` first. If it finds nothing, don't suggest it.
+   - **Never** suggest a case the crawl gives no sign of, such as "payment declined". Check first with `get_crawl_digest(target, text="<word>")` **and** by reading the matching cards' names: the crawl cuts long labels short. For example, Toolshop's "Long Nose Pliers" card ends in "Out…" (out of stock), but a search for "stock" finds nothing.
    - When the expected result isn't in the crawl (what an empty search shows), **ask the user**, or run the test once, show the result, and ask *"Is this right?"* before asserting it.
 5. **Five or six items at most**, deduplicated. If more behaviours exist, say how many and offer `more`.
 6. **Say what the crawl didn't reach**, such as login-only pages or pages past `max_depth`, and offer a deeper crawl or a crawl with a login.
@@ -189,6 +189,59 @@ When the user describes one:
 - No `CLICK` on a field before typing into it: `CLEAR`, then `SEND_KEYS`.
 - Dropdowns use `SELECT_BY_TEXT` with the exact option text.
 - **The test ends by asserting the outcome** the user asked about: the cart count is 1, the results list Pliers, the error text appears. A screenshot is evidence, not a check.
+
+### These rules are mandatory, not suggestions
+- **No record ids. Ever.** If a URL or selector contains an id from the data, the test is wrong. Rewrite it before showing the plan.
+- **Journeys start where a user starts:** the home page, a category, or the search box. Only fixed routes (`/contact`, `/category/hand-tools`) may be opened directly. A record page (a product, an order) is reached by clicking through.
+- **Wait for content before every interaction**, on every page the test reaches.
+
+### Wrong vs right, the same journey
+❌ **Wrong** (built in a real trial; it broke):
+```yaml
+- action: NAVIGATE_TO
+  url: "{{baseUrl}}/product/01M3FZ5CD4BXK3PFN6RCYZ3SXY"   # record id: breaks when the data changes
+- action: CLICK
+  selector: "#btn-add-to-cart"                            # no wait: the page isn't loaded yet
+- action: TAKE_SCREENSHOT                                 # no check: proves nothing
+```
+
+✅ **Right** (validated, passed on Playwright, and failed when the expected count was changed to 7):
+```yaml
+name: "Search pliers, open Combination Pliers, add to cart"
+appTag: "toolshop-web-trial"
+steps:
+- action: NAVIGATE_TO
+  url: "{{baseUrl}}/"
+- action: WAIT_FOR_VISIBLE
+  selector: "#search-query"
+  timeout: 15000
+- action: CLEAR
+  selector: "#search-query"
+- action: SEND_KEYS
+  selector: "#search-query"
+  value: "pliers"
+- action: CLICK
+  selector: 'button:has-text("Search")'
+- action: WAIT_FOR_VISIBLE
+  selector: 'a.card:has-text("Combination Pliers")'
+  timeout: 15000
+- action: CLICK
+  selector: 'a.card:has-text("Combination Pliers")'
+- action: WAIT_FOR_VISIBLE
+  selector: "#btn-add-to-cart"
+  timeout: 15000
+- action: CLICK
+  selector: "#btn-add-to-cart"
+- action: WAIT_FOR_VISIBLE
+  selector: 'a[href="/checkout"]'
+  timeout: 10000
+- action: VALIDATE_TEXT
+  selector: 'a[href="/checkout"]'
+  expectedText: "1"
+- action: TAKE_SCREENSHOT
+  filename: "cart-has-one"
+```
+The cart link `a[href="/checkout"]` isn't in the crawl: it only appears **after** something is added. For an outcome like that, run the test once, look at the result (a screenshot or the failing step's message), and then add the check. Say in the plan that this one selector came from the run, not the crawl.
 
 ### When a run fails: fix your own mistakes, ask only about the site
 1. Read the failing step and its message.
