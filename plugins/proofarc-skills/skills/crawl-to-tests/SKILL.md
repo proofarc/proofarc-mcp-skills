@@ -95,7 +95,7 @@ One screen. For example, for Toolshop:
 > 1. **Smoke**: home, 4 categories, contact and login each open with the right title *(one test, every main page once; recommended to start)*
 > 2. **Journey A**: category → product → *Add to cart* → the cart count goes to 1 *(changes only this browser's cart)*
 > 3. **Search**: "pliers" lists Pliers *(home page search)*
-> 4. **Sort**: on a category page, Price (Low–High) puts the cheapest first
+> 4. **Sort**: on a category page, Price (Low - High) puts the cheapest first
 > 5. **Contact validation**: send empty → each required field shows its error *(sends nothing)*
 >
 > **Edge cases the crawl supports:** empty search (the search box is there; I'll ask what it should show). Login is not covered: the crawl didn't go behind it.
@@ -177,7 +177,14 @@ All of these read the target's stored crawl with `get_crawl_digest(target, …)`
 - `NAVIGATE_TO` takes `url:`.
 - Waits take `timeout:` in **milliseconds** (`10000`). A `value: "5"` on a wait does nothing and falls back to 30 s.
 - `VALIDATE_TITLE`, `VALIDATE_TEXT` and `WAIT_FOR_TEXT` take `expectedText:`. `value:` is only for typing (`SEND_KEYS`).
-- **Dropdowns (`<select>`) use `SELECT_BY_TEXT`** with `value:` set to the option's visible text, for example `"Price (Low - High)"`. `SEND_KEYS` fails on a select. The crawl may list a dropdown as `type: input`, so treat a sort, filter or category control as a dropdown.
+- **Dropdowns (`<select>`) use `SELECT_BY_TEXT`.** Set `value:` to the option's visible text **copied character for character from the crawl**. Toolshop's option is `"Price (Low - High)"` with a plain hyphen; a dash (`–`) or extra spaces won't match, and the step times out.
+  - `SEND_KEYS` fails on a select.
+  - The crawl may list a dropdown as `type: input`, so treat a sort, filter or category control as a dropdown.
+  - If the crawl doesn't show the full option text, ask the user for it. Don't fall back to `SELECT_BY_INDEX`: option order changes, and the test would quietly pick something else.
+  - **Custom dropdowns**, built from `div`s rather than a `<select>`, don't work with the `SELECT_*` actions. `CLICK` the control, then `CLICK` the option by its text.
+- **Wait before checking a title.** Single-page apps set the page title after the page loads, so `VALIDATE_TITLE` straight after `NAVIGATE_TO` can read the generic title. Wait for an element on that page first, as in the example. The same goes for validation messages: `WAIT_FOR_TEXT` before asserting them.
+- **Other actions** (hover, double-click, read a value, check an attribute, frames, alerts, uploads): `list_ui_test_actions` gives each action's required parameters. Check it before using an action not listed here.
+- **More detail on one element**, such as its alternate selectors or xpath: use `get_crawl_results(job_id, element=<selector>)` rather than re-crawling at a higher level.
 - **Wait for something on the page you navigated to**, such as its form, list or heading from the crawl, not the site's header or menu. A header element is on every page, so waiting for it proves nothing.
 
 Example (validated):
