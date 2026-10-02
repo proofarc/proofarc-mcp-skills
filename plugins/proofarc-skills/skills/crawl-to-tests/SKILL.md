@@ -5,6 +5,18 @@ description: Use whenever the user asks to create, write, build or suggest UI / 
 
 # From crawl to web UI tests: an interactive guide
 
+## FIRST: do exactly this, in this order
+
+1. **Find the ProofArc servers** in your tool list: names like `mcp__<server>__list_projects` where `<server>` contains `proofarc` (for example `proofarc-dev`, `proofarc-outpostqa`). Ignore `claude.ai proofarc`.
+2. **More than one server?** Your **first reply is only this question**, with no tool calls before it:
+   > Which ProofArc do you want to work in?
+   > 1. **proofarc-dev**
+   > 2. **proofarc-outpostqa**
+   (List the real server names you found.) Wait for the answer. **One server:** use it without asking. **None:** follow the `connect` skill.
+3. **Load that server's tools** with one `ToolSearch` call: `select:mcp__<server>__list_applications,mcp__<server>__list_targets,…` (full list below). Then call them **as tools**. **Never use Bash, curl or Python to reach ProofArc**, and never ask the user how to call the tools.
+4. Then continue with step 1 (Which application).
+
+
 Web UI only. We automate an **application**, so start there, then the **project**, then the **environment** to work in. The environment's **website target** is where the crawl lives and where the tests run.
 
 ## Non-negotiable test rules (check every plan against these, without asking the user)

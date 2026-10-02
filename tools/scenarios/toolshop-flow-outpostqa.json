@@ -1,0 +1,13 @@
+{
+  "name": "Toolshop on OutpostQA: instance → app → environment → summary (user's setup)",
+  "cwd": "~/skill-trial",
+  "model": "default",
+  "allowed_tools": ["Skill", "ToolSearch", "mcp__proofarc-outpostqa__*", "mcp__proofarc-dev__*"],
+  "turns": [
+    {"say": "create UI tests for Toolshop", "expect_skill": "crawl-to-tests",
+     "expect": ["(?is)proofarc-dev.*proofarc-outpostqa|proofarc-outpostqa.*proofarc-dev"], "forbid_tools": ["Bash", "Glob", "Grep", "Read"]},
+    {"say": "2", "expect": ["(?i)practicesoftwaretesting"], "forbid": ["(?i)devdemo"], "forbid_tools": ["Bash"], "max_seconds": 90},
+    {"say": "Toolshop web (trial)", "expect": ["(?i)toolshop-trial"], "forbid_tools": ["Bash"], "max_seconds": 90},
+    {"say": "toolshop-trial", "expect": ["(?i)(smoke|search|cart)"], "forbid": ["(?i)/product/01"], "forbid_tools": ["Bash", "crawl_by_target"], "max_seconds": 120}
+  ]
+}

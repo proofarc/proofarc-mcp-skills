@@ -1,2 +1,4 @@
 .DS_Store
 *.swp
+tools/scenarios/*.log.json
+tools/scenarios/*.transcript.md

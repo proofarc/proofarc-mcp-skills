@@ -1,0 +1,11 @@
+{
+  "name": "First reply asks which ProofArc instance (two connected), installed plugin, user's setup",
+  "cwd": "~/skill-trial",
+  "model": "default",
+  "allowed_tools": ["Skill", "mcp__proofarc-outpostqa__*", "mcp__proofarc-dev__*"],
+  "turns": [
+    {"say": "create UI tests for Toolshop", "expect_skill": "crawl-to-tests",
+     "expect": ["(?is)(proofarc-dev|devdemo|\\bdev\\b).*(outpostqa)|(outpostqa).*(proofarc-dev|devdemo|\\bdev\\b)"],
+     "forbid_tools": ["Bash", "Glob", "Grep", "Read"]}
+  ]
+}
