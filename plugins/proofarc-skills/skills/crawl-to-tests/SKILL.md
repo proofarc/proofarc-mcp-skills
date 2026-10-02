@@ -70,7 +70,13 @@ The user can type `where` at any time to change this.
    - **App needs a login:** the target needs one first. Follow the playbook from `find_playbooks("authenticated web UI")`: a saved login, then `set_target_auth` with `authType: "UI_LOGIN"`. Never type a password yourself.
    - After crawling, check that the pages are app routes, not just `/login`.
 3. **A run link to an ad-hoc crawl** (one not made from a target) can be read with `get_crawl_results(job_id)`, but it doesn't say where tests should run. Use it only to understand the site; build from the target's crawl.
-4. `advise_ui(target)` returns the testability score, band, and examples of controls with no stable id.
+4. `advise_ui(target)` returns the testability score, band, and examples of controls with no stable id. Call it **only once this target has a crawl**, and pass the target's **id** from `list_targets`, not its name; names repeat across environments. On a target that was never crawled, `advise_ui` can report another environment's crawl of the same address. Don't present that as this target's analysis.
+
+**No crawl at all is a normal start, not a dead end.** The user doesn't need a crawl to begin. Say *"There's no crawl of `<address>` in `<environment>` yet. A crawl takes 1–2 minutes and finds the pages and controls to build tests from."*, then offer:
+1. Crawl now *(recommended)*
+2. Describe what you want to test first. Take their scenario in their own words, then crawl and map it onto the result.
+
+Never write selectors before a crawl exists.
 
 ## 5. First reply: what the app is, how testable, what to test
 
