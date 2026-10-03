@@ -12,9 +12,9 @@ All of these read the target's stored crawl with `get_crawl_digest(target, …)`
 | `show <page>` | `page="<path or *part*>"`, then `type="form"`, `type="input"`, `type="button"` | that page's fields and buttons, marking which have stable ids |
 | `stable <page>` | `page=…, stable_only=true` | only controls with an id a developer chose |
 | `explain` | the SKILL.md step 4 results you already have | page groups with counts, forms by page, testability examples |
-| `scenario <in your words>` | `get_crawl_digest` per step (`page=`, `text=`, `type=`) | the user's journey mapped onto the crawl, step by step (SKILL.md §6, *Scenarios in the user's own words*) |
+| `scenario <in your words>` | `get_crawl_digest` per step (`page=`, `text=`, `type=`) | the user's journey mapped onto the crawl, step by step (*Scenarios in the user's own words*, below) |
 | `test <screen or idea>` | | 2–3 test ideas for it |
-| `where` | | go back to SKILL.md steps 1–3 |
+| `where` | | go back to SKILL.md steps 1–2 |
 | `fixlist` | `advise_ui(target, full=true)` | a list for the developers: each control with no stable id, its page, and the `data-testid` to add, ranked by how many tests would use it |
 | `more` / `done` | | next suggestions / finish |
 
@@ -32,12 +32,13 @@ All of these read the target's stored crawl with `get_crawl_digest(target, …)`
 ```yaml
 name: "Search pliers, open Combination Pliers, add to cart"
 appTag: "toolshop-web-trial"
+config:
+  timeout: 15000
 steps:
 - action: NAVIGATE_TO
   url: "{{baseUrl}}/"
 - action: WAIT_FOR_VISIBLE
   selector: "#search-query"
-  timeout: 15000
 - action: CLEAR
   selector: "#search-query"
 - action: SEND_KEYS
@@ -47,17 +48,14 @@ steps:
   selector: 'button:has-text("Search")'
 - action: WAIT_FOR_VISIBLE
   selector: 'a.card:has-text("Combination Pliers")'
-  timeout: 15000
 - action: CLICK
   selector: 'a.card:has-text("Combination Pliers")'
 - action: WAIT_FOR_VISIBLE
   selector: "#btn-add-to-cart"
-  timeout: 15000
 - action: CLICK
   selector: "#btn-add-to-cart"
 - action: WAIT_FOR_VISIBLE
   selector: 'a[href="/checkout"]'
-  timeout: 10000
 - action: VALIDATE_TEXT
   selector: 'a[href="/checkout"]'
   expectedText: "1"
@@ -83,7 +81,7 @@ The cart link `a[href="/checkout"]` isn't in the crawl: it only appears **after*
 
 **Parameters each action really takes** (the validator refuses the wrong ones):
 - `NAVIGATE_TO` takes `url:`.
-- Waits take `timeout:` in **milliseconds** (`10000`). A `value: "5"` on a wait does nothing and falls back to 30 s.
+- **Wait time: set it once.** `config:` → `timeout: 15000` (**milliseconds**: `config.timeout: 15` would mean 15 ms) at the top of the test applies to every wait and navigation. Put `timeout:` on a single step only to override it there. A top-level `timeout:` or `defaultTimeout:` outside `config:` is ignored (the wait falls back to 30 s), and so is a wait time given as `value:`. On a **step** `timeout:` only, 600 or less is read as seconds (`timeout: 5` = 5 s); `config.timeout` is always milliseconds.
 - `VALIDATE_TITLE`, `VALIDATE_TEXT` and `WAIT_FOR_TEXT` take `expectedText:`. `value:` is only for typing (`SEND_KEYS`).
 - **Dropdowns (`<select>`) use `SELECT_BY_TEXT`.** Set `value:` to the option's visible text **copied character for character from the crawl**. Toolshop's option is `"Price (Low - High)"` with a plain hyphen; a dash (`–`) or extra spaces won't match, and the step times out.
   - `SEND_KEYS` fails on a select.
@@ -99,12 +97,13 @@ Example (validated):
 ```yaml
 name: "Hand Tools page opens with the right title"
 appTag: "toolshop-web-trial"
+config:
+  timeout: 15000
 steps:
 - action: NAVIGATE_TO
   url: "{{baseUrl}}/category/hand-tools"
 - action: WAIT_FOR_VISIBLE
   selector: '[aria-label="Sort products"]'
-  timeout: 10000
 - action: VALIDATE_TITLE
   expectedText: "Hand Tools - Practice Software Testing - Toolshop - v5.0"
 - action: TAKE_SCREENSHOT
@@ -114,7 +113,8 @@ steps:
 **Steps:**
 - Navigate, wait, act, wait, then assert the **outcome**, not just a click.
 - `CLEAR` before `SEND_KEYS`.
-- Wait times go in `timeout:` (milliseconds).
+- Wait time once in `config: timeout:`; a step's own `timeout:` only to override it.
+- **A tip or banner on every page** (e.g. a "Got it" pop-up, which shows up on every screenshot): dismiss it once, right after login (`WAIT_FOR_VISIBLE`, `CLICK`, `WAIT_FOR_INVISIBLE`), but only if dismissing it changes nothing on the account (it only sets a cookie or local-storage flag and sends no request; if unsure, ask the user). Each run starts a fresh browser, so the pop-up shows on every run (to confirm per app: if it only sometimes appears, the `WAIT_FOR_VISIBLE` on it would fail the test).
 - `TAKE_SCREENSHOT` early.
 - `WAIT_FOR_URL` isn't valid; use `VALIDATE_URL`.
 
@@ -128,8 +128,8 @@ Call `list_ui_test_actions` for the full, current list.
 | `NAVIGATE_BACK`, `NAVIGATE_FORWARD`, `REFRESH` | — |
 | `CLICK`, `DOUBLE_CLICK`, `RIGHT_CLICK` | `selector` |
 | `SEND_KEYS` | `selector`, `value` |
-| `WAIT_FOR_VISIBLE`, `WAIT_FOR_CLICKABLE`, `WAIT_FOR_ELEMENT`, `WAIT_FOR_INVISIBLE` | `selector`, `timeout` (milliseconds, e.g. `15000`) |
-| `WAIT_FOR_TEXT` | `selector`, `expectedText`, `timeout` |
+| `WAIT_FOR_VISIBLE`, `WAIT_FOR_CLICKABLE`, `WAIT_FOR_ELEMENT`, `WAIT_FOR_INVISIBLE` | `selector`, optional `timeout` (overrides `config.timeout`) |
+| `WAIT_FOR_TEXT` | `selector`, `expectedText`, optional `timeout` |
 | `VALIDATE_TITLE`, `VALIDATE_URL` | `expectedText` (contains) |
 | `VALIDATE_TEXT` | `selector`, `expectedText` (contains) |
 | `VALIDATE_VISIBLE`, `VALIDATE_NOT_VISIBLE`, `VALIDATE_ELEMENT_VISIBLE`, `VALIDATE_ELEMENT_EXISTS` | `selector` |
@@ -151,3 +151,37 @@ Call `list_ui_test_actions` for the full, current list.
 | `missing_required` with `ask_user` and `candidates` | Show the user the candidates and ask; then call again with their answer. |
 | Crawl found almost nothing | Login page (add a credential), bot protection (HTTP 403 or a captcha — ask for a staging URL), or the crawl was too shallow (raise `max_depth`). |
 | A test is red | Report the failing step and message. Don't change the expectation to make it pass. |
+
+## More detail for SKILL.md steps
+
+### Step 1: app by address or run link
+- When the user pastes an address, match it against the targets' `baseUrl` by host, ignoring `www.` and any trailing `/`. If several apps match, show only those.
+- **A run link `…/scans/<n>`:** call `get_execution_status(execution_id="<n>", kind="ui_job")` and use `items[0].target`. Send the number **as a string**.
+- **An ad-hoc crawl** (not made from a target) can be read with `get_crawl_results(job_id)`, but it doesn't say where tests should run. Use it only to understand the site.
+- A web target with no application is listed under its address, marked *"not linked to an application"*.
+
+### Step 2: adding a login
+Follow `find_playbooks("authenticated web UI")`:
+1. The user gives the username and password.
+2. Save them with `add_environment_credential(environment, tag, username, password)`.
+3. Set the target to sign in with `set_target_auth(target, auth_config={"authType": "UI_LOGIN", "credentialTag": "<tag>"})`.
+4. Crawl. Check that the pages found are app routes, not just `/login`.
+
+### Step 3: crawl
+- `crawl_by_target` waits until the crawl finishes (1–2 minutes). If it returns `timedOut`, read `get_crawl_digest` again in a minute.
+- Call `advise_ui` only after **this** target has a crawl, and pass its id. On a target that was never crawled, it can report another environment's crawl of the same address.
+
+### Step 4: building the suggested set
+- **Edge cases:** check with `get_crawl_digest(target, text="<word>")` **and** by reading card names, because the crawl cuts long labels short. Toolshop's "Long Nose Pliers" card ends in "Out…" (out of stock); a search for "stock" finds nothing.
+- When the expected result isn't in the crawl (what an empty search shows), ask the user, or run the test once and ask *"Is this right?"* before asserting it.
+- When the user asks to trim or improve the set, reply with **the changed list itself**: merge overlaps, fold title checks into the smoke test, and drop anything the crawl can't support.
+- Every claim about the app comes from the crawl or `advise_ui`. Say "looks like" for anything you infer.
+
+### Scenarios in the user's own words
+1. Split the scenario into steps, and look each one up with `get_crawl_digest(target, page=…, text=…, type=…)`.
+2. Show the mapping with ✓ for each step the crawl covers, plus any open question. Offer *1. Build it 2. Change a step*.
+3. For a step the crawl didn't reach (behind a login, or past the crawl's depth), say so and offer a deeper crawl or a crawl with a login. Never invent its selectors.
+4. Example scenarios you offer must name only pages and controls the crawl has.
+
+### `fixlist`
+`advise_ui(target, full=true)` gives the controls with no stable id and the `data-testid` to add to each. Offer this at the end when testability is below 70.

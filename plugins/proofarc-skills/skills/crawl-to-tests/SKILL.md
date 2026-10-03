@@ -3,221 +3,82 @@ name: crawl-to-tests
 description: Use whenever the user asks to create, write, build or suggest UI / web / browser tests for a site or app — "create UI tests for Toolshop", "test my website", "test https://…", "web tests for <app>", "write some web tests for the shop", "what can I test on <site>", "find the screen with …" — even when ProofArc isn't mentioned. The tests are built and run on the connected ProofArc platform (its mcp__…proofarc… tools), not as Playwright/Cypress files on disk, so don't search the local folder for code. Interactive: pick the app, project and environment, read or run the crawl, suggest tests or map the user's scenario, then build, run and prove them. Web UI only. Skip it only when no ProofArc MCP server is configured and the user wants test code written into their own repo.
 ---
 
-# From crawl to web UI tests: an interactive guide
+# Web UI tests from the crawl
 
 ## FIRST: do exactly this, in this order
 
-1. **Find the ProofArc servers** in your tool list: names like `mcp__<server>__list_projects` where `<server>` contains `proofarc` (for example `proofarc-dev`, `proofarc-outpostqa`). Ignore `claude.ai proofarc`.
-2. **More than one server?** Your **first reply is only this question**, with no tool calls before it:
+1. **Find the ProofArc servers** in your tool list: tool names `mcp__<server>__…` where `<server>` contains `proofarc` (e.g. `proofarc-staging`, `proofarc-prod`). Ignore `claude.ai proofarc`.
+2. **More than one?** If the user named an app, you may call `list_applications` on each server. If exactly one server has that app, use it and say *"On proofarc-…:"*. Otherwise your **first reply is only this question**, with no other tool calls before it:
    > Which ProofArc do you want to work in?
-   > 1. **proofarc-dev**
-   > 2. **proofarc-outpostqa**
-   (List the real server names you found.) Wait for the answer. **One server:** use it without asking. **None:** follow the `connect` skill.
-3. **Load that server's tools** with one `ToolSearch` call: `select:mcp__<server>__list_applications,mcp__<server>__list_targets,…` (full list below). Then call them **as tools**. **Never use Bash, curl or Python to reach ProofArc**, and never ask the user how to call the tools.
-4. Then continue with step 1 (Which application).
+   > 1. **proofarc-staging**
+   > 2. **proofarc-prod**
 
+   Use the real names you found (the ones above are only examples), then wait. `AskUserQuestion` is fine for this question. **One server:** use it without asking. **None:** follow the `connect` skill. **Configured but failed to connect:** ask the user to run `/mcp` → Reconnect.
+3. **Load that server's tools with one `ToolSearch`:** `select:` followed by `mcp__<server>__` plus each of `list_applications`, `list_application_projects`, `list_environments`, `list_targets`, `list_environment_credentials`, `get_crawl_digest`, `crawl_by_target`, `advise_ui`, `validate_ui_test_yaml`, `create_ui_test_from_yaml`, `update_ui_test_from_yaml`, `run_ui_test`, `get_execution_status`, `find_ui_tests`, `get_crawl_results`, `list_ui_test_actions`, `find_playbooks`, `add_environment_credential`, `set_target_auth`, `run_by_tag`.
+4. **Call them as tools.** Never reach ProofArc through Bash, curl or Python, and never ask the user how to call tools. Don't use Bash to print status messages either; just write the text.
 
-Web UI only. We automate an **application**, so start there, then the **project**, then the **environment** to work in. The environment's **website target** is where the crawl lives and where the tests run.
+**Every reply ends with numbered choices.** Ask one thing per reply and mark a sensible default *(recommended)*.
 
-## Non-negotiable test rules (check every plan against these, without asking the user)
+## Test rules (check every plan against these yourself; don't ask the user)
 
-1. **No record ids.** No id from the data in a URL or selector (`/product/01M3…`). Reach records through the UI, starting where a user starts (home, a category, search), and click them **by visible name** (`a:has-text("Combination Pliers")`), never "the first result". Only fixed routes (`/contact`, `/category/hand-tools`) may be opened directly.
-2. **Wait for that page's content before every interaction**, using `WAIT_FOR_VISIBLE`/`WAIT_FOR_TEXT` with `timeout:` in **milliseconds** (`15000`). Wait for a form, list or heading of that page, not the site's header.
-3. **Addresses are `{{baseUrl}}/path`**, with the application's `appTag:` at the top. Never the site's URL.
-4. **Parameters:** `NAVIGATE_TO` takes `url:`. `VALIDATE_*` and `WAIT_FOR_TEXT` take `expectedText:`. `value:` is only for `SEND_KEYS` and `SELECT_BY_TEXT`.
-5. **`CLEAR`, then `SEND_KEYS`.** Never `CLICK` a field before typing.
-6. **Dropdowns use `SELECT_BY_TEXT`** with the option text copied exactly from the crawl. `SEND_KEYS` fails on a `<select>`.
-7. **Selectors only from the crawl**, with one exception: an element that exists only **after** an action (a cart badge, a toast) may be taken from the first run's screenshot or failing step. Say so in the plan.
-8. **The test ends by asserting the outcome** the user asked about. A screenshot is evidence, not a check.
-9. **Logins** are `{{username}}`/`{{password}}` from the environment's saved login, never literal values.
+1. **No record ids** in a URL or selector (`/product/01M3…`). Reach records through the UI from a real entry point (home, category, search) and click them **by visible name** (`a:has-text("Combination Pliers")`). Only fixed routes (`/contact`, `/category/hand-tools`) may be opened directly.
+2. **Wait for that page's content before every interaction:** `WAIT_FOR_VISIBLE` on a form, list or heading of that page. When the page loads data, wait for the data itself (a list row, a known item), not a search box or toolbar that appears before it. Set the wait time **once** in a top-level `config:` block containing `timeout: 15000` (milliseconds; `15` would mean 15 ms), and put `timeout:` on a step only to override it. A top-level `timeout:` or `defaultTimeout:` (outside `config:`) is ignored, and the wait falls back to 30 s.
+3. **`{{baseUrl}}/path`**, with the application's `appTag:` at the top. Never the site's URL.
+4. **Parameters:** `NAVIGATE_TO` takes `url:`. `VALIDATE_*` and `WAIT_FOR_TEXT` take `expectedText:`. `value:` only for `SEND_KEYS` and `SELECT_BY_TEXT`.
+5. **`CLEAR`, then `SEND_KEYS`.** Dropdowns use `SELECT_BY_TEXT` with the option text exactly as in the crawl.
+6. **Selectors only from the crawl, and unique.** Prefer `#id` → `[name=…]` → `[aria-label=…]` → `a[href="/fixed/path"]` → text. A crawl `sel` that is only a shared class (`button.btn`, `a.card`, `button.nav-link`) matches many elements, so add the visible text: `button:has-text("Search")`, `a.card:has-text("Combination Pliers")`. Exception: an element that appears only after an action (cart badge, toast) may come from the first run; say so.
+7. **End by asserting the outcome** the user asked about, and choose a check that would **fail if the action did nothing**. A search test checks for a result that isn't on the page before the search (or for "Searched for: pliers"), not a product that is already on the home page. The fail-proof (rule in step 5) breaks that outcome. A screenshot is not a check.
+8. **Logins are `{{username}}`/`{{password}}`** from the environment's saved login. Never invent or type a password.
 
-`target` always means the target's **id** from `list_targets`. Names repeat across environments.
-Full selector and parameter detail, a wrong-vs-right example, and the command table are in `reference.md`, in this skill's folder.
+`target` always means the target's **id** from `list_targets`. Details, examples and commands: `reference.md` in this skill's folder. Read it once before drafting the first test.
 
-**Every reply ends with numbered choices** the user can answer with a number. If the `AskUserQuestion` tool is available, use it. Mark a sensible default *(recommended)*. Ask one thing per reply.
+## 1. Which app
 
-**ProofArc not connected?** A "failed to connect" notice at the start of a session isn't final: the server may only have been unreachable for a moment. Before telling the user anything is unavailable, check whether any `mcp__proofarc…` tools are listed.
-- **A ProofArc server is configured but failed to connect:** ask the user to type `/mcp`, pick it and choose **Reconnect**, then continue.
-- **No ProofArc server is configured, or tools answer 401:** follow the `connect` skill. If `PROOFARC_URL`, `PROOFARC_USERNAME` and `PROOFARC_PASSWORD` are set in the user's shell, it connects without asking. Otherwise it shows the user the three lines to add to their shell profile.
-- Ignore a failing `claude.ai proofarc` connector when another ProofArc server works.
-- If **no** ProofArc server is configured at all and the user wants test code in their own repo, this skill doesn't apply. Say so and stop.
-
-**Which ProofArc first.** If more than one ProofArc server is connected (tool names `mcp__<server>__…`), ask which instance to use before anything else, and use only that server's tools from then on. With one server, use it without asking.
-
-**Load the tools in one search at the start** (note that `list_targets` is called with no arguments in step 1), by full name: `select:mcp__<server>__list_applications,mcp__<server>__list_application_projects,…` for `list_applications`, `list_application_projects`, `list_environments`, `list_targets`, `get_crawl_digest`, `crawl_by_target`, `advise_ui`, `find_playbooks`, `get_playbook`, `validate_ui_test_yaml`, `create_ui_test_from_yaml`, `run_ui_test`, `get_execution_status`, `get_crawl_results`, `set_target_auth`, `list_ui_test_actions`, `update_ui_test_from_yaml`, `add_environment_credential`, `list_environment_credentials`, `run_by_tag`. Short names without the prefix don't match.
-
-## 1. Which application: shown by its address
-
-People know their app by its address, not by its ProofArc name. These are MCP tools: call them directly as tools, not through the shell. Make two calls at once:
-- `list_applications`
-- `list_targets()` with no arguments. It returns **every** target with its `applicationId`, `environmentName`, `targetType` and `baseUrl`, in under a second.
-
-Join them, and keep the applications that have a `WEB_APP` target (or a web type or interface). Show **the application's name as it is**, then its **target host**, then the **environments that have that target**. Those environments are where it can run:
-
+Call `list_applications` and `list_targets()` (no arguments: every target, with `applicationId`, `environmentName`, `targetType`, `baseUrl`). Show the apps that have a `WEB_APP` target, each as **name: host, envs**:
 > Which app do you want to test?
 > 1. **Toolshop web**: `practicesoftwaretesting.com`, env `staging`
 > 2. **Shop admin**: `admin.example.com`, envs `dev`, `staging`
-> 3. **Marketing site**: `www.example.com`, env `prod`
-> 4. A different app or address
->
-> Or just paste the address.
+> 3. A different app or address
 
-- **The user pastes an address**, or gave one earlier, or a run link `…/scans/<n>`: match it against the targets' `baseUrl` by host, ignoring `www.` and any trailing `/`.
-  - For a run link, call `get_execution_status(execution_id="<n>", kind="ui_job")` and use `items[0].target`; send the number as a string.
-  - One match: confirm it in a line. Several (the same site in several applications): show only those.
-- **No match:** it's a new application. Hand off to `project-setup`, which asks before creating anything.
-- A web target with no application (`applicationId` empty) is listed under its address too, marked *"not linked to an application"*.
+- **The user didn't name an app:** show the whole list as above.
+- **The user named an app (by name or host) and exactly one matches:** don't ask. Say *"Toolshop web (`practicesoftwaretesting.com`)"* in one line and go straight to step 2, as if they had picked it from the list.
+- **Several match:** show only those, as the list.
+- **None match:** show the whole list, plus *"N. A new app at <address>"*, which hands off to `project-setup`.
 
-## 2. Which project
+## 2. Project and environment
 
-- `list_application_projects(application)` returns the projects that use this application.
-- One project: confirm it in a line. Several: offer them. None: hand off to `project-setup`.
+- **Project:** `list_application_projects(application)`. Confirm it if there's one; ask if there are several.
+- **Environment:** only environments with a web target for this app, taken from the step-1 targets. Show whether each has a login saved (`list_environment_credentials`). Confirm it if there's one; ask if there are several.
+- **No login saved** and the app needs one: offer *1. Add a login now (you give it; it's saved in ProofArc) 2. Only tests that don't need a login*.
 
-## 3. Which environment
+Then say in one line: *"Working on **app** (`host`), project **X**, environment **Y**, target `https://…`."* Use the real **names** (not ids): the project from `list_application_projects`, the environment from `list_environments`. Never call an environment a project.
 
-- `list_environments(project)`. Filter the step-1 `list_targets()` result by `environmentName`; don't call `list_targets` again.
-- Offer only environments that have a **`WEB_APP` target bound to this application**. Show each one's target address and whether it has a login saved (`list_environment_credentials(environment)`):
-  > 1. **staging**: `https://shop.example.com`, login `qa-user` *(recommended)*
-  > 2. **dev**: `https://dev.shop.example.com`, no login
-  > 3. New environment
-- New environment, or no web target: hand off to `project-setup`.
+## 3. The crawl
 
-**Logins, asked now and not later.** If the app has a login page or the crawl hit a login wall, and the chosen environment has **no login saved**, say so here:
-> This environment has no login saved, so tests behind the login can't run yet. 1. Add one now (you give the username and password; they're saved in ProofArc, not in tests) 2. Only build tests that don't need a login
+- `get_crawl_digest(target, level="index")` reads the stored crawl in under a second.
+- **No crawl yet:** say so and offer *1. Crawl now (1–2 minutes) (recommended) 2. Describe what to test first*. Crawl with `crawl_by_target(target, mode="digest", max_depth=2, max_urls=40)`.
+- Once a crawl exists, call `advise_ui(target)` for the testability score.
 
-For option 1, follow `find_playbooks("authenticated web UI")` (the Authenticated Web UI Flow): the user gives the login, `add_environment_credential`, then `set_target_auth(target, auth_config={"authType": "UI_LOGIN", "credentialTag": …})` so the crawl and the tests can get behind it. Never invent or reuse a password.
+## 4. Summary and suggestions (one screen)
 
-Confirm in one line: *"Working on **Toolshop web**, project **X**, environment **Y**, target `https://…`."*
-The user can type `where` at any time to change this.
+- **What the app looks like.** One sentence, plus 3 bullets, from the crawl's pages and forms.
+- **Testability:** the score and what it means.
+- **Up to 6 suggested tests with no overlap.** All "page opens" checks go into **one smoke test**, which opens **each main page** (home, each category, contact, login…) and for each one waits for something specific to that page, then checks its title with `VALIDATE_TITLE`. The site header or menu proves nothing, because it's on every page. A journey is one test. **Each item names the check it ends with** (*"→ cart shows 1"*). Each item says what it changes (*nothing*, *this browser's cart*, *sends data*). Never offer purchases, deletions or sign-ups unless asked. Edge cases only where the crawl shows the input exists.
+- **Close with:** *"Pick tests (`1,3`), `all`, or describe your own scenario."*
 
-## 4. The crawl of that target
+The user may also type `find <text>`, `show <page>`, `scenario <words>`, `where` or `done`. See `reference.md`, Commands.
 
-1. `get_crawl_digest(target, level="index")` reads the stored crawl in under a second. It returns the pages, with their element counts, and when the target was crawled.
-2. **No stored crawl** (`cached: false`), or it's older than the user wants: offer to crawl.
-   - Call `crawl_by_target(target, mode="digest", max_depth=2, max_urls=40)`. It waits until the crawl finishes (1–2 minutes) and returns the digest; say so before starting. If it returns `timedOut`, the crawl is still going: read `get_crawl_digest` again in a minute.
-   - **App needs a login:** the target needs one first. Set it up as in step 3 (the Authenticated Web UI Flow), then crawl.
-   - After crawling, check that the pages are app routes, not just `/login`.
-3. **A run link to an ad-hoc crawl** (one not made from a target) can be read with `get_crawl_results(job_id)`, but it doesn't say where tests should run. Use it only to understand the site; build from the target's crawl.
-4. `advise_ui(target)` returns the testability score, band, and examples of controls with no stable id. Call it **only once this target has a crawl**, and pass the target's **id** from `list_targets`, not its name; names repeat across environments. On a target that was never crawled, `advise_ui` can report another environment's crawl of the same address. Don't present that as this target's analysis.
+## 5. Build each chosen test
 
-**No crawl at all is a normal start, not a dead end.** The user doesn't need a crawl to begin. Say *"There's no crawl of `<address>` in `<environment>` yet. A crawl takes 1–2 minutes and finds the pages and controls to build tests from."*, then offer:
-1. Crawl now *(recommended)*
-2. Describe what you want to test first. Take their scenario in their own words, then crawl and map it onto the result.
+1. Fetch only the elements it needs: `get_crawl_digest(target, page=…, text=…, type=…)`.
+2. Draft the YAML, check it against the **Test rules**, and run `validate_ui_test_yaml`. Show the plan **in plain words** and **stop. Don't create anything until the user answers**: *open home → type `pliers` in Search → press Search → check Pliers appears. 1. Create it 2. Change something*. Choosing a test from the list isn't approval of its plan.
+3. **A test with that name already exists?** Say so and ask: *1. Run the existing test 2. Create it as "<name> (2)"*. Don't silently reuse it.
+4. After the user answers **1**: `create_ui_test_from_yaml(project, yaml_text, name, target="<target id>", tags="from-crawl")`, then `run_ui_test(test, environment, target="<target id>", drivers=["PLAYWRIGHT"], wait=True)`. Read `testOutcome`.
+5. **Prove it can fail:** change the final expected value with `update_ui_test_from_yaml`, run it (it must fail), restore it, and run again (it must pass).
+6. Report in one line that says **both** results: *✓ Search finds pliers: passed, and fails when the expected name is wrong.* A report that only says "passed" is incomplete.
 
-Never write selectors before a crawl exists.
+**If a run fails:** if it's your mistake (a missing wait, a wrong parameter, a selector not from the crawl), fix it and re-run **without asking**. Ask only when the site itself behaves unexpectedly: *"1. The site is wrong, keep it as a finding 2. I misread the page"*. Never loosen a check to make it pass.
 
-## 5. First reply: what the app is, how testable, what to test
+## 6. Done
 
-One screen. For example, for Toolshop:
-
-> **Toolshop web**, environment **toolshop-trial** (`https://practicesoftwaretesting.com`), crawled today: 40 pages, 6 forms.
->
-> **What it looks like:** an online hardware shop.
-> - Products are in 4 categories, with product pages (`/product/…`) that have *Add to cart*.
-> - Search and sorting are on the listing pages.
-> - It has login, register and a contact form, and a rentals section.
->
-> **Testability: 51/100 (needs work).** 440 of 855 controls have a stable id. The shop's main controls do (`#btn-add-to-cart`, `#email`, `#password`); navigation links and the Search button don't, so those tests depend on their text.
->
-> **Scenarios:**
-> - A. Browse a category → open a product → add it to the cart
-> - B. Search → open a product
-> - C. Wrong password → error
-> - D. Contact form with missing fields → required errors
->
-> **Suggested set: 5 tests, no overlap.**
-> 1. **Smoke**: home, 4 categories, contact and login each open with the right title *(one test, every main page once; recommended to start)*
-> 2. **Journey A**: category → product → *Add to cart* → the cart count goes to 1 *(changes only this browser's cart)*
-> 3. **Search**: "pliers" lists Pliers *(home page search)*
-> 4. **Sort**: on a category page, Price (Low - High) puts the cheapest first
-> 5. **Contact validation**: send empty → each required field shows its error *(sends nothing)*
->
-> **Edge cases the crawl supports:** empty search (the search box is there; I'll ask what it should show). Login is not covered: the crawl didn't go behind it.
->
-> Pick tests (`1,3`), a scenario (`A`), the whole set (`all`), describe your own scenario, or type `find <text>` to explore.
-
-### How to build the suggested set
-
-Work through this checklist **before** writing the list. Weaker models skip it, so do every step.
-
-1. **One page, one test per behaviour.** List the behaviours the crawl shows: pages opening, search, sort or filter, each form, each journey. Each gets exactly one test.
-   - Never suggest two tests that only load the same page.
-   - "Page opens with the right title" is never a test of its own. All of those go into **one smoke test** that visits every main page once.
-2. **Journeys are tests too.** A scenario that crosses pages (browse → product → add to cart) is one test with several steps. Don't also suggest each of its pages separately.
-3. **Each item says what it covers** (pages, feature) and **what it changes**: *nothing*, *this browser's cart only*, or *sends data*. Read-only and browser-only items come first. Never offer purchases, deletions or account creation unless the user asks.
-4. **Edge cases only where the crawl shows the input exists.**
-   - An empty search is fine if there's a search box. An invalid email is fine if there's an email field.
-   - **Never** suggest a case the crawl gives no sign of, such as "payment declined". Check first with `get_crawl_digest(target, text="<word>")` **and** by reading the matching cards' names: the crawl cuts long labels short. For example, Toolshop's "Long Nose Pliers" card ends in "Out…" (out of stock), but a search for "stock" finds nothing.
-   - When the expected result isn't in the crawl (what an empty search shows), **ask the user**, or run the test once, show the result, and ask *"Is this right?"* before asserting it.
-5. **Every suggestion already obeys the Non-negotiable test rules.**
-   - Nothing like "open a specific product directly": products are reached by search or a category, then clicked by name.
-   - **Each item names the check it ends with**, for example *"→ the cart shows 1"*, *"→ Pliers is in the results"* or *"→ each field shows its error"*. An item that ends with a click or "check the button" isn't a test yet.
-6. **Five or six items at most**, deduplicated. If more behaviours exist, say how many and offer `more`.
-7. **Say what the crawl didn't reach**, such as login-only pages or pages past `max_depth`, and offer a deeper crawl or a crawl with a login.
-
-### When the user asks to improve or trim the set
-
-Apply the same checklist to the list you suggested, and answer with **the changed list itself**, not advice:
-- merge overlaps
-- fold title checks into the smoke test
-- drop anything the crawl can't support
-
-Then ask *"Use this set? 1. Yes 2. Change something"*.
-
-**Rules:**
-- **Every claim comes from the crawl or `advise_ui`.** Say "looks like" for anything you infer.
-- If a scenario could be one test or several, ask which.
-
-## 6. Commands, any time
-
-The user can type these at any time: `find <text>`, `show <page>`, `stable <page>`, `explain`, `scenario <in your words>`, `test <idea>`, `where`, `fixlist`, `more` and `done`. Each one, and the call behind it, is in `reference.md`, under Commands. They all read the stored crawl with `get_crawl_digest(target, …)` and take under a second. `find` matches a screen's **address** (`page="*<text>*"`) and an element's **label** (`text=`).
-
-### Scenarios in the user's own words
-
-The user can describe a journey instead of picking from the list, for example *"filter products by brand and check the results change"*. You can invite it in any reply: *"…or describe a scenario in your own words."* **Example scenarios you offer must come from the crawl.** Name only pages and controls you've seen in it: *"Filter by brand"* because the crawl has `brand_id` filters, *"Add to cart"* because it has `#btn-add-to-cart`. Label anything that creates data, for example *"Register a new account (creates an account)"*.
-
-When the user describes one:
-1. **Split it into steps**, then look each one up in the crawl with `get_crawl_digest(target, page=…, text=…, type=…)`.
-2. **Show the mapping**, marking what the crawl covers and what it doesn't:
-   > *Filter by brand, results change:*
-   > 1. Open **Hand Tools** (`/category/hand-tools`) ✓
-   > 2. Tick a brand: `input[name="brand_id"]` ✓ *(the crawl doesn't show which brand is which; I'll pick the first one unless you name one)*
-   > 3. Check that the product list changes ✓ (the listing is on the page)
-   >
-   > 1. Build it 2. Change a step
-3. **A step the crawl didn't reach** (a page behind a login, or past the crawl's depth): say so, and offer a deeper crawl, or a crawl with a login. Never invent its selectors.
-4. Then continue as for any chosen test (section 7).
-
-## 7. Settle each chosen test (one question per reply)
-
-1. **Follow ProofArc's playbook for it.** Call `find_playbooks(<the user's words>)`.
-   - Use "UI Flow — crawl → compose → run" for public pages.
-   - Use "Authenticated Web UI Flow" for anything behind a login.
-   - Then `get_playbook(id)` and keep to its beats and gotchas.
-2. **Fetch just the elements it needs:** `get_crawl_digest(target, page=…, type=…, text=…)`.
-3. **Ask the one open detail, as options.** For example: *"Search for which product? 1. Pliers (on the site) 2. Your own"*.
-4. **Draft, check, then show the plan in plain words (not YAML).** Before drafting the first test of the session, read `reference.md` in this skill's folder. Check the draft against the **Non-negotiable test rules** and run `validate_ui_test_yaml` on it, so you never offer a test the platform would refuse:
-   > *Search finds pliers*: open home → type `pliers` in **Search** → press **Search** → wait → check **Pliers** appears.
-   > 1. Create it 2. Change something
-
-## 8. Build, run, prove
-
-### Build and run
-1. If the plan changed after §7, run `validate_ui_test_yaml` again. Then `create_ui_test_from_yaml(project, yaml_text, name, target="<target id>", tags="from-crawl")`.
-2. `run_ui_test(test, environment, target="<target id>", drivers=["PLAYWRIGHT"], wait=True)`. Read `testOutcome`, not `status`.
-3. **Prove it can fail.** Use `update_ui_test_from_yaml` to change the final expected value, run the test and see it fail, then restore it, re-run, and **confirm it's green again** before reporting.
-4. Report in one line: *✓ Search finds pliers: passed, and fails when the expected name is wrong.*
-5. If it fails, follow "When a run fails" below. Never loosen a check just to make it pass.
-
-### When a run fails: fix your own mistakes, ask only about the site
-1. Read the failing step and its message.
-2. **If it's a test-writing mistake**, fix it with `update_ui_test_from_yaml` and re-run without asking. That covers a missing wait, a wrong parameter, a selector not from the crawl, a record id, or the wrong action for a dropdown. Then report once: *"Step 7 failed because it didn't wait for the product page; added the wait; ✓ passes now."*
-3. **Ask only when the site itself behaves unexpectedly**, with the correct steps in place: *"The page loads but shows no Add to cart button. 1. The site is wrong, keep it as a finding 2. I misread the page, tell me what should happen"*.
-4. **Never offer options that break the rules**, such as "use another product id", "skip the wait" or "skip this test" as a fix.
-
-Then offer the remaining tests, `run all` (`run_by_tag(tags=["from-crawl"], project, environment, kinds=["ui"], dry_run=True)` to show what would run, then again without `dry_run`), `report` (hand off to `test-report`), or `done`.
-
-
-## 9. Done
-
-One line: the tests created and passed, the project and environment, and the tag `from-crawl`. If testability was below 70, offer `fixlist`: adding `data-testid` to those controls makes every test on them sturdier.
+Offer the remaining tests, `run all` (`run_by_tag(tags=["from-crawl"], project, environment, kinds=["ui"])`), or `done`. Finish with one line: the tests created and passed, the project, the environment, and the tag `from-crawl`.
