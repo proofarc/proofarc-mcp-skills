@@ -1,0 +1,11 @@
+{
+  "name": "EXAMPLE: plain request starts crawl-to-tests and the first reply asks which ProofArc (copy to tools/scenarios/local/ and adapt)",
+  "cwd": "~/some-ordinary-folder",
+  "model": "default",
+  "allowed_tools": ["Skill", "mcp__<your-proofarc-server-a>__*", "mcp__<your-proofarc-server-b>__*"],
+  "turns": [
+    {"say": "create UI tests for <your app>", "expect_skill": "crawl-to-tests",
+     "expect": ["(?i)which proofarc"], "forbid_tools": ["Bash", "Glob", "Grep", "Read", "ToolSearch", "list_.*"]},
+    {"say": "<your-proofarc-server-b>", "expect": ["(?i)which app|<your app>"], "forbid_tools": ["Bash"]}
+  ]
+}

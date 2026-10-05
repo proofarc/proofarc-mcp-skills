@@ -8,14 +8,16 @@ description: Use whenever the user asks to create, write, build or suggest UI / 
 ## FIRST: do exactly this, in this order
 
 1. **Find the ProofArc servers** in your tool list: tool names `mcp__<server>__…` where `<server>` contains `proofarc` (e.g. `proofarc-staging`, `proofarc-prod`). Ignore `claude.ai proofarc`.
-2. **More than one?** If the user named an app, you may call `list_applications` on each server. If exactly one server has that app, use it and say *"On proofarc-…:"*. Otherwise your **first reply is only this question**, with no other tool calls before it:
+2. **More than one?** If the user named an app, you may call `list_applications` on each server **yourself**: one direct tool call per server (in parallel is fine), never through `Agent`/`Task`, `Bash` or `echo`. If exactly one server has that app, use it and say *"On proofarc-…:"*. Otherwise your **first reply is only this question**, with no other tool calls before it:
    > Which ProofArc do you want to work in?
    > 1. **proofarc-staging**
    > 2. **proofarc-prod**
 
    Use the real names you found (the ones above are only examples), then wait. `AskUserQuestion` is fine for this question. **One server:** use it without asking. **None:** follow the `connect` skill. **Configured but failed to connect:** ask the user to run `/mcp` → Reconnect.
-3. **Load that server's tools with one `ToolSearch`:** `select:` followed by `mcp__<server>__` plus each of `list_applications`, `list_application_projects`, `list_environments`, `list_targets`, `list_environment_credentials`, `get_crawl_digest`, `crawl_by_target`, `advise_ui`, `validate_ui_test_yaml`, `create_ui_test_from_yaml`, `update_ui_test_from_yaml`, `run_ui_test`, `get_execution_status`, `find_ui_tests`, `get_crawl_results`, `list_ui_test_actions`, `find_playbooks`, `add_environment_credential`, `set_target_auth`, `run_by_tag`.
-4. **Call them as tools.** Never reach ProofArc through Bash, curl or Python, and never ask the user how to call tools. Don't use Bash to print status messages either; just write the text.
+
+   **One server failing is only that server.** An error or 503 from one (or from `claude.ai proofarc`) says nothing about the others: try each ProofArc server's tools before saying anything is unavailable, and never conclude "ProofArc is down" from one failure.
+3. **Load that server's tools with one `ToolSearch`:** `select:` followed by `mcp__<server>__` plus each of `list_applications`, `list_application_projects`, `list_environments`, `list_targets`, `list_environment_credentials`, `get_crawl_digest`, `crawl_by_target`, `advise_ui`, `validate_ui_test_yaml`, `create_ui_test_from_yaml`, `update_ui_test_from_yaml`, `run_ui_test`, `get_execution_status`, `find_ui_tests`, `get_crawl_results`, `list_ui_test_actions`, `find_playbooks`, `add_environment_credential`, `set_target_auth`, `run_by_tag`, `get_tool_gotchas`.
+4. **Call them as tools, yourself.** Never reach ProofArc through Bash, curl, Python or a sub-agent (`Agent`/`Task`): a sub-agent may not have these tools, and its failure is not a lost connection. Never ask the user how to call tools. Don't use Bash to print status messages either; just write the text. A result too large to show is saved to a file: read it with `Read` (`offset`/`limit`), or ask the tool for less (`page=`, `text=`, `type=`), not with Bash.
 
 **Every reply ends with numbered choices.** Ask one thing per reply and mark a sensible default *(recommended)*.
 
@@ -26,8 +28,8 @@ description: Use whenever the user asks to create, write, build or suggest UI / 
 3. **`{{baseUrl}}/path`**, with the application's `appTag:` at the top. Never the site's URL.
 4. **Parameters:** `NAVIGATE_TO` takes `url:`. `VALIDATE_*` and `WAIT_FOR_TEXT` take `expectedText:`. `value:` only for `SEND_KEYS` and `SELECT_BY_TEXT`.
 5. **`CLEAR`, then `SEND_KEYS`.** Dropdowns use `SELECT_BY_TEXT` with the option text exactly as in the crawl.
-6. **Selectors only from the crawl, and unique.** Prefer `#id` → `[name=…]` → `[aria-label=…]` → `a[href="/fixed/path"]` → text. A crawl `sel` that is only a shared class (`button.btn`, `a.card`, `button.nav-link`) matches many elements, so add the visible text: `button:has-text("Search")`, `a.card:has-text("Combination Pliers")`. Exception: an element that appears only after an action (cart badge, toast) may come from the first run; say so.
-7. **End by asserting the outcome** the user asked about, and choose a check that would **fail if the action did nothing**. A search test checks for a result that isn't on the page before the search (or for "Searched for: pliers"), not a product that is already on the home page. The fail-proof (rule in step 5) breaks that outcome. A screenshot is not a check.
+6. **Selectors only from the crawl, and unique.** Prefer `#id` → `[name=…]` → `[aria-label=…]` → `a[href="/fixed/path"]` → text. A crawl `sel` that is only a shared class (`button.btn`, `a.card`, `button.nav-link`) matches many elements, so add the visible text: `button:has-text("Search")`, `a.card:has-text("Combination Pliers")`. Text selectors (`text=…`, `:has-text(…)`) match by *contains* and wait on the **first** match, which may be a hidden copy (a closed menu item, a hidden duplicate label): add `>> visible=true` to waits and checks on text that can appear more than once. Exception: an element that appears only after an action (cart badge, toast, results caption) may come from the first run or a known pattern; say so.
+7. **End by asserting the outcome** the user asked about, with a check that would **fail if the action did nothing**. **Look it up first:** `get_crawl_digest(target, page=<starting page>, text=<what you'd check>)`. Anything the starting page already shows (a card, the header, any text on `body`) is **not allowed**, whatever the reason. Check what the action creates instead: a results caption or count, a toast, a changed badge, or a result that isn't on the starting page. On Toolshop the home page shows every pliers card, so a search test searches `saw` and ends on the Circular Saw card (or on `[data-test="search-caption"]`). The fail-proof (section 5, item 5) breaks that outcome. A screenshot is not a check.
 8. **Logins are `{{username}}`/`{{password}}`** from the environment's saved login. Never invent or type a password.
 
 `target` always means the target's **id** from `list_targets`. Details, examples and commands: `reference.md` in this skill's folder. Read it once before drafting the first test.
@@ -42,7 +44,7 @@ Call `list_applications` and `list_targets()` (no arguments: every target, with 
 
 - **The user didn't name an app:** show the whole list as above.
 - **The user named an app (by name or host) and exactly one matches:** don't ask. Say *"Toolshop web (`practicesoftwaretesting.com`)"* in one line and go straight to step 2, as if they had picked it from the list.
-- **Several match:** show only those, as the list.
+- **Several match:** show only those, as the list. A shared or partial name is several matches: "Toolshop" when there are *Toolshop web* and *Toolshop (Angular)*. **Never pick one of them yourself**, even if one looks more likely.
 - **None match:** show the whole list, plus *"N. A new app at <address>"*, which hands off to `project-setup`.
 
 ## 2. Project and environment
@@ -70,14 +72,17 @@ The user may also type `find <text>`, `show <page>`, `scenario <words>`, `where`
 
 ## 5. Build each chosen test
 
-1. Fetch only the elements it needs: `get_crawl_digest(target, page=…, text=…, type=…)`.
-2. Draft the YAML, check it against the **Test rules**, and run `validate_ui_test_yaml`. Show the plan **in plain words** and **stop. Don't create anything until the user answers**: *open home → type `pliers` in Search → press Search → check Pliers appears. 1. Create it 2. Change something*. Choosing a test from the list isn't approval of its plan.
-3. **A test with that name already exists?** Say so and ask: *1. Run the existing test 2. Create it as "<name> (2)"*. Don't silently reuse it.
-4. After the user answers **1**: `create_ui_test_from_yaml(project, yaml_text, name, target="<target id>", tags="from-crawl")`, then `run_ui_test(test, environment, target="<target id>", drivers=["PLAYWRIGHT"], wait=True)`. Read `testOutcome`.
-5. **Prove it can fail:** change the final expected value with `update_ui_test_from_yaml`, run it (it must fail), restore it, and run again (it must pass).
-6. Report in one line that says **both** results: *✓ Search finds pliers: passed, and fails when the expected name is wrong.* A report that only says "passed" is incomplete.
+**Never call `create_ui_test_from_yaml` or `run_ui_test` in the same reply as the plan.** The order is always: plan → the user answers **1** → create and run. A test the user asks for that isn't on your list ("build the search test") gets the same treatment: draft its plan and stop. If you can't build what they named, say so and offer the closest test; don't build a different one.
 
-**If a run fails:** if it's your mistake (a missing wait, a wrong parameter, a selector not from the crawl), fix it and re-run **without asking**. Ask only when the site itself behaves unexpectedly: *"1. The site is wrong, keep it as a finding 2. I misread the page"*. Never loosen a check to make it pass.
+1. Once per session, before the first draft: `get_tool_gotchas("create_ui_test_from_yaml")`. These are the platform's rules for UI tests, and they are as binding as the Test rules here. Then fetch only the elements the test needs: `get_crawl_digest(target, page=…, text=…, type=…)`.
+2. Draft the YAML, check it against the **Test rules**, and run `validate_ui_test_yaml`. Show the plan **in plain words** and **stop. Don't create anything until the user answers**: *open home → type `saw` in Search → press Search → check the **Circular Saw** card appears. **Fails if search did nothing:** the crawl shows Circular Saw only on Power Tools, not on the home page. 1. Create it 2. Change something*. Every plan has that **Fails if … did nothing** line, saying the starting page does **not** show the checked thing. If that line would say the thing is already there, the check is wrong: change it before showing the plan (rule 7). **Never show a plan that breaks a Test rule**, not even as one option with a better one beside it: fix it first, then show only the fixed plan. Choosing a test from the list isn't approval of its plan.
+3. **A test with that name already exists?** Say so and ask: *1. Run the existing test 2. Create it as "<name> (2)"*. Don't silently reuse it.
+4. After the user answers **1**: `create_ui_test_from_yaml(project, yaml_text, name, target="<target id>", tags="from-crawl", driver="PLAYWRIGHT")` (the selectors here, such as `:has-text()`, work on Playwright only), then `run_ui_test(test, environment, target="<target id>", drivers=["PLAYWRIGHT"], wait=True)`. Read `testOutcome`.
+5. **Prove it can fail:** change the final expected value with `update_ui_test_from_yaml`, run it (it must fail), restore it, and run again (it must pass).
+6. The deliberately broken run shows in the run list as a failure. Name it so nobody mistakes it for a real one: *"run 875 failed on purpose (expected 'Circular Saw X')"*.
+7. Report in one line that says **both** results: *✓ Search finds Circular Saw: passed, and fails when the expected name is wrong.* A report that only says "passed" is incomplete.
+
+**If a run fails:** read the failing step's **screenshot** first. Two common causes: the element is in the crawl but hidden when the page loads (the crawl has no visibility flag), or a dialog or tip is on top of it (close it with Cancel or X, never Skip or Save). If it's your mistake (a missing wait, a wrong parameter, a selector not from the crawl, a hidden element, an overlay), fix it and re-run **without asking**. Ask only when the site itself behaves unexpectedly: *"1. The site is wrong, keep it as a finding 2. I misread the page"*. Never loosen a check to make it pass.
 
 ## 6. Done
 

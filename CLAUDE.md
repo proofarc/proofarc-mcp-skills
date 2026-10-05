@@ -13,7 +13,7 @@
    - Trial behaviour changes with `claude -p … --model claude-haiku-4-5-20251001 --plugin-dir ./plugins/proofarc-skills`, connected only to the instance being used.
 5. **Drive it the way users run it.**
    - Run `python3 tools/drive_agent.py tools/scenarios/<each>.json --plugin-dir ./plugins/proofarc-skills` from the repo.
-   - Each scenario runs in an ordinary folder (`~/skill-trial`, not this repo: this `CLAUDE.md` would take over), with the default model and **all** of the user's MCP servers connected.
+   - Each scenario runs in an ordinary folder (e.g. `~/skill-trial`, not this repo: this `CLAUDE.md` would take over), with the default model and **all** of the user's MCP servers connected.
    - Every scenario must pass. Run each one at least 3 times; Haiku varies.
    - Fable reads text; only this shows which skill a model actually picks and what it does.
 6. **Push** only after steps 1–5. Record the review in the commit message (`Reviewed-by: Fable (<n> findings, all addressed)`).

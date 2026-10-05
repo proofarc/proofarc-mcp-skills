@@ -28,13 +28,15 @@ Runs of different kinds (UI, mobile, API) can go in one report.
 - `ui-summary` — one line per run
 - `ui-failures-only` — only failed runs; says "every run passed" when there are none
 
+**Run report (our layout)** — `templates/run-report.ftl`. Use it when the user asks for "the run report", wants to see why a run failed, or compares engines. One section per test: the runs of that test side by side (one card per engine, with pass/fail/skip bars and time), a note when the engines disagree, the steps of the worst run with what each step acted on, and a panel per failed step with the error and the screenshot's name. Read the file and pass its contents as `template_source`. Put all runs of a test (e.g. its WebDriver and Playwright runs) in the same call so they line up.
+
 **Custom layout** — when the user wants different columns, grouping, wording or branding:
 1. Ask what they want to see — e.g. "one line per test with name, result and time", "group by test type", "our logo colours".
 2. Write a FreeMarker template over the report fields. The main ones:
    - report: `report.title`, `report.generatedAt`, `report.runs`
    - run (`<#list report.runs as r>`): `r.testName`, `r.kindLabel`, `r.outcome`, `r.passed`, `r.totalSteps`, `r.duration` (seconds), `r.startedAt`, `r.runNumber`, `r.errorMessage`, `r.steps`
    - step (`<#list r.steps as s>`): `s.action`, `s.status`, `s.duration`, `s.errorMessage`
-   Put `!` after anything that can be missing (`${r.duration!'—'}`). Full list and examples: `fields.md`. For a polished full report, start from `templates/branded-full.ftl`.
+   Put `!` after anything that can be missing (`${r.duration!'—'}`). Full list and examples: `fields.md`. For a polished full report, start from `templates/branded-full.ftl`; for failure investigation, from `templates/run-report.ftl`.
 3. Pass it as `template_source`. A mistake comes back as a 400 that names the field — fix it and render again.
 
 Custom templates aren't saved on the platform: save the template file for the user (e.g. `reports/<name>.ftl` in their repo) so it can be reused.

@@ -46,6 +46,10 @@ steps:
   value: "pliers"
 - action: CLICK
   selector: 'button:has-text("Search")'
+- action: WAIT_FOR_TEXT
+  selector: '[data-test="search-caption"]'
+  expectedText: "pliers"
+# ^ this caption is the search's proof (the home page has none); the click below continues the journey to the cart
 - action: WAIT_FOR_VISIBLE
   selector: 'a.card:has-text("Combination Pliers")'
 - action: CLICK

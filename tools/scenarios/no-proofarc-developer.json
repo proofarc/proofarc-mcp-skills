@@ -1,0 +1,8 @@
+{
+  "name": "Developer with no ProofArc server asking for Playwright code: the plugin stays out of the way",
+  "cwd": "fixtures/react-app",
+  "model": "default",
+  "mcp_config": "fixtures/no-mcp.json", "strict_mcp": true,
+  "allowed_tools": ["Skill"],
+  "turns": [{"say": "write Playwright tests for my React component", "forbid": ["(?i)which proofarc"], "forbid_skill_prefix": "proofarc-skills:crawl-to-tests"}]
+}
