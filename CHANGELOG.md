@@ -1,5 +1,8 @@
 # Changelog — proofarc-skills
 
+## 0.3.6 — 2026-10-05
+- **Web UI tests run on Playwright only, for now.** `crawl-to-tests` (new Test rule 9) and `run-test` always run with `drivers=["PLAYWRIGHT"]` and save tests with `driver="PLAYWRIGHT"`, and refuse WebDriver even when asked, explaining why. The engines don't behave the same yet: `:has-text()` is rejected on WebDriver, and a page load that times out is reported as passed there. `run_ui_test_suite` gets `drivers=["PLAYWRIGHT"]`; `run_by_tag` (no engine parameter) is used only when every UI test it queues is saved as Playwright.
+
 ## 0.3.5 — 2026-10-05
 - **crawl-to-tests: a fixed first move at the very top.** Find the ProofArc servers. If there's more than one, the first reply is only "Which ProofArc do you want to work in?". Then load that server's tools and call them as tools, never through Bash. In the user's real setup (installed plugin, ordinary folder, Haiku, two ProofArc servers), 0.3.4 asked the instance question in 1 of 3 runs, and in one run tried Bash and gave up. 0.3.5 asks it in 5 of 5 runs (8–19 s), and the full flow instance → app → environment → suggested tests passed in 2 of 2 runs (about 60 s).
 - **New: `tools/drive_agent.py`** plays the user through a scripted conversation (`claude -p --resume`), checks each reply against regexes, the skill started and forbidden tools, and writes a transcript. Scenarios are in `tools/scenarios/`.

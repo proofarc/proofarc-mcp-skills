@@ -71,6 +71,7 @@ flowchart LR
 - Tests are read-only unless you ask otherwise.
 - Every assertion is made to fail once before it's trusted.
 - A red test is a finding: the skills report it and never loosen the test to make it pass.
+- Web UI tests run on Playwright only, for now. WebDriver isn't supported yet.
 
 ## For maintainers
 

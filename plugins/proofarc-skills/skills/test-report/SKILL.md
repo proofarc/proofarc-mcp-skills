@@ -28,7 +28,7 @@ Runs of different kinds (UI, mobile, API) can go in one report.
 - `ui-summary` — one line per run
 - `ui-failures-only` — only failed runs; says "every run passed" when there are none
 
-**Run report (our layout)** — `templates/run-report.ftl`. Use it when the user asks for "the run report", wants to see why a run failed, or compares engines. One section per test: the runs of that test side by side (one card per engine, with pass/fail/skip bars and time), a note when the engines disagree, the steps of the worst run with what each step acted on, and a panel per failed step with the error and the screenshot's name. Read the file and pass its contents as `template_source`. Put all runs of a test (e.g. its WebDriver and Playwright runs) in the same call so they line up.
+**Run report (our layout)** — `templates/run-report.ftl`. Use it when the user asks for "the run report", wants to see why a run failed, or compares engines (existing runs only: new web runs are Playwright only, see `run-test`). One section per test: the runs of that test side by side (one card per engine, with pass/fail/skip bars and time), a note when the engines disagree, the steps of the worst run with what each step acted on, and a panel per failed step with the error and the screenshot's name. Read the file and pass its contents as `template_source`. Put all runs of a test (e.g. its WebDriver and Playwright runs) in the same call so they line up.
 
 **Custom layout** — when the user wants different columns, grouping, wording or branding:
 1. Ask what they want to see — e.g. "one line per test with name, result and time", "group by test type", "our logo colours".
