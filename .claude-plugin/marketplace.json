@@ -9,6 +9,11 @@
       "name": "proofarc-skills",
       "source": "./plugins/proofarc-skills",
       "description": "Guided testing with ProofArc over MCP: connect, set up a project, write web UI, API, mobile and performance tests, run them and report."
+    },
+    {
+      "name": "proofarc-dev-skills",
+      "source": "./plugins/proofarc-dev-skills",
+      "description": "Internal, for the ProofArc team: usability rules for the platform, checked through MCP and as dogfood UI tests. Customers don't need it."
     }
   ]
 }

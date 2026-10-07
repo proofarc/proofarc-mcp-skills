@@ -1,4 +1,29 @@
-# Changelog — proofarc-skills
+# Changelog — proofarc marketplace
+
+Entries are for `proofarc-skills` unless they name `proofarc-dev-skills`.
+
+## proofarc-dev-skills 0.1.0 — 2026-10-07
+- **New internal plugin, `proofarc-dev-skills`**, for the ProofArc team, next to `proofarc-skills` in the same marketplace. Customers don't install it.
+- **New skill `usability-flows`** (proofarc/tspc-cloud-platform#570). It sets the platform's usability rules in `rules.md`:
+  - U1: never start a run that can't pass
+  - U2: the status says what happened
+  - U3: every result shows its steps
+  - U4: an error names its fix
+- Each rule has flows in `api/flows.md`, which the skill runs through MCP with no UI (setup, call, pass if). The same rules for the screen are in `ui/flows.md`, built as dogfood UI tests. The skill reports one line per flow and a pass/fail/blocked count.
+- API flows: U1.a, U1.b, U2.a, U3.a, U4.a. U1.c (login without a token endpoint) is listed but not runnable yet: it needs a trial environment of its own.
+- Result on dev today: pass U1.b, U2.a, U3.a; fail U1.a, U4.a (proofarc/tspc-cloud-platform#569); blocked U1.c.
+- The skill is written so Haiku can't report a result it didn't get:
+  - every PASS or FAIL quotes the execution id and status from a call in the same reply; a flow it didn't call is BLOCKED
+  - no sub-agents, and only the `proofarc-dev` server
+  - U1.a's verdict is mechanical: an execution id came back → FAIL
+  - U1.b reads each row's own execution (`runName`, `tags`, `variablesSnapshot`)
+  - the summary names the flows in each group, without numbers
+  In earlier drafts, Haiku reported U1.a as PASS, called the outpostqa server and found no project 169, added a credential on the shared environment, and mistallied counts.
+- Drive trials (Haiku, `~/skill-trial`, both ProofArc servers connected):
+  - "run the usability flows on proofarc-dev" started `usability-flows` in 18 of 18 runs. The final 3 runs gave the right verdict for every flow.
+  - "create UI tests for Toolshop" started `crawl-to-tests`, not this skill, in 6 of 6 runs.
+  - Haiku still sometimes runs `sleep 3` in Bash while waiting, against the skill's instruction. It's harmless, so the trial doesn't fail on it.
+- Reviewed by Fable: 4 must-fix, 7 should-fix and 4 nits, all addressed. U1.c (login without a token endpoint) was cut to "to define", because it would have needed changes to shared environment 125.
 
 ## 0.3.6 — 2026-10-05
 - **Web UI tests run on Playwright only, for now.** `crawl-to-tests` (new Test rule 9) and `run-test` always run with `drivers=["PLAYWRIGHT"]` and save tests with `driver="PLAYWRIGHT"`, and refuse WebDriver even when asked, explaining why. The engines don't behave the same yet: `:has-text()` is rejected on WebDriver, and a page load that times out is reported as passed there. `run_ui_test_suite` gets `drivers=["PLAYWRIGHT"]`; `run_by_tag` (no engine parameter) is used only when every UI test it queues is saved as Playwright.

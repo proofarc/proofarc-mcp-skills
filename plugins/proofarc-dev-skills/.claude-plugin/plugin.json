@@ -1,0 +1,9 @@
+{
+  "name": "proofarc-dev-skills",
+  "version": "0.1.0",
+  "description": "Internal: skills for developing ProofArc itself. usability-flows checks the platform's usability rules through MCP and as dogfood UI tests.",
+  "author": {
+    "name": "ProofArc"
+  },
+  "license": "MIT"
+}
