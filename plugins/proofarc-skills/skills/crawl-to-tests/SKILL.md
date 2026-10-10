@@ -40,7 +40,7 @@ description: Use whenever the user asks to create, write, build or suggest UI / 
 **The user named an app, a project or an address:** call `get_working_context(application=…)`, `get_working_context(project=…)` or `get_working_context(url=…)`. One call returns the project, its environments (each with `logins` and `defaultLogin`), their targets (`id`, `baseUrl`, `appTag`, `targetType`, and for web targets the latest `crawl`: when, pages, elements) and the project's applications. Use those ids for every later call; don't list anything else.
 - **`CHOOSE_PROJECT`:** show the `candidates` as a numbered list and ask. **Never pick one yourself.**
 - **`SHARED_TARGET`:** the address is in a shared environment every project can use. Ask which project the test is for, then call `get_working_context(project=…)`.
-- **Several `matchedTargets`:** the address is a target in more than one environment; ask which environment.
+- **Several `matchedTargets`:** more than one target has that address (the context lists each with its environment); ask which one.
 - **`NOT_FOUND`:** offer *"N. A new app at <address>"*, which hands off to `project-setup`.
 
 **The user named nothing:** call `list_applications()`. On a small instance it lists the apps; show those with a web target as **name**. On a large one it answers `TOO_MANY_TO_LIST`: then ask *"Which app do you want to test? Paste its address or its name."*, and call `get_working_context` with the answer.
