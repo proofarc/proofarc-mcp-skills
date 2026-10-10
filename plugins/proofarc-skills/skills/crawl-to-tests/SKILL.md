@@ -8,7 +8,7 @@ description: Use whenever the user asks to create, write, build or suggest UI / 
 ## FIRST: do exactly this, in this order
 
 1. **Find the ProofArc servers** in your tool list: tool names `mcp__<server>__…` where `<server>` contains `proofarc` (e.g. `proofarc-staging`, `proofarc-prod`). Ignore `claude.ai proofarc`.
-2. **More than one?** If the user named an app, you may call `list_applications` on each server **yourself**: one direct tool call per server (in parallel is fine), never through `Agent`/`Task`, `Bash` or `echo`. If exactly one server has that app, use it and say *"On proofarc-…:"*. Otherwise your **first reply is only this question**, with no other tool calls before it:
+2. **More than one?** If the user named an app, project or address, you may call `get_working_context` with it on each server **yourself** (`list_applications` on a server that has no `get_working_context`): one direct tool call per server (in parallel is fine), never through `Agent`/`Task`, `Bash` or `echo`. If exactly one server has it, use it and say *"On proofarc-…:"*. Otherwise your **first reply is only this question**, with no other tool calls before it:
    > Which ProofArc do you want to work in?
    > 1. **proofarc-staging**
    > 2. **proofarc-prod**
@@ -16,7 +16,7 @@ description: Use whenever the user asks to create, write, build or suggest UI / 
    Use the real names you found (the ones above are only examples), then wait. `AskUserQuestion` is fine for this question. **One server:** use it without asking. **None:** follow the `connect` skill. **Configured but failed to connect:** ask the user to run `/mcp` → Reconnect.
 
    **One server failing is only that server.** An error or 503 from one (or from `claude.ai proofarc`) says nothing about the others: try each ProofArc server's tools before saying anything is unavailable, and never conclude "ProofArc is down" from one failure.
-3. **Load that server's tools with one `ToolSearch`:** `select:` followed by `mcp__<server>__` plus each of `list_applications`, `list_application_projects`, `list_environments`, `list_targets`, `list_environment_credentials`, `get_crawl_digest`, `crawl_by_target`, `advise_ui`, `validate_ui_test_yaml`, `create_ui_test_from_yaml`, `update_ui_test_from_yaml`, `run_ui_test`, `get_execution_status`, `find_ui_tests`, `get_ui_test`, `get_crawl_results`, `list_ui_test_actions`, `find_playbooks`, `add_environment_credential`, `set_target_auth`, `run_by_tag`, `get_tool_gotchas`.
+3. **Load that server's tools with one `ToolSearch`:** `select:` followed by `mcp__<server>__` plus each of `get_working_context`, `list_applications`, `list_application_projects`, `list_environments`, `list_targets`, `list_environment_credentials`, `get_crawl_digest`, `crawl_by_target`, `advise_ui`, `validate_ui_test_yaml`, `create_ui_test_from_yaml`, `update_ui_test_from_yaml`, `run_ui_test`, `get_execution_status`, `find_ui_tests`, `get_ui_test`, `get_crawl_results`, `list_ui_test_actions`, `find_playbooks`, `add_environment_credential`, `set_target_auth`, `run_by_tag`, `get_tool_gotchas`.
 4. **Call them as tools, yourself.** Never reach ProofArc through Bash, curl, Python or a sub-agent (`Agent`/`Task`): a sub-agent may not have these tools, and its failure is not a lost connection. Never ask the user how to call tools. Don't use Bash to print status messages either; just write the text. A result too large to show is saved to a file: read it with `Read` (`offset`/`limit`), or ask the tool for less (`page=`, `text=`, `type=`), not with Bash.
 
 **Every reply ends with numbered choices.** Ask one thing per reply and mark a sensible default *(recommended)*.
@@ -33,32 +33,30 @@ description: Use whenever the user asks to create, write, build or suggest UI / 
 8. **Logins are `{{username}}`/`{{password}}`** from the environment's saved login. Never invent or type a password.
 9. **Playwright only, for now.** Every UI run uses `drivers=["PLAYWRIGHT"]`, and every UI test is saved with `driver="PLAYWRIGHT"`. Never run or save a UI test for `WEBDRIVER`, even if the user asks: say *"Web tests run on Playwright for now; WebDriver isn't supported yet."* and run it on Playwright. The two engines don't behave the same yet (`:has-text()` fails on WebDriver; a page that never loads passes there).
 
-`target` always means the target's **id** from `list_targets`. Details, examples and commands: `reference.md` in this skill's folder. Read it once before drafting the first test.
+`target` always means the target's **id** from `get_working_context` (or `list_targets`). Details, examples and commands: `reference.md` in this skill's folder. Read it once before drafting the first test.
 
-## 1. Which app
+## 1. Which app, project and environment: one call
 
-Call `list_applications` and `list_targets()` (no arguments: every target, with `applicationId`, `environmentName`, `targetType`, `baseUrl`). Show the apps that have a `WEB_APP` target, each as **name: host, envs**:
-> Which app do you want to test?
-> 1. **Toolshop web**: `practicesoftwaretesting.com`, env `staging`
-> 2. **Shop admin**: `admin.example.com`, envs `dev`, `staging`
-> 3. A different app or address
+**The user named an app, a project or an address:** call `get_working_context(application=…)`, `get_working_context(project=…)` or `get_working_context(url=…)`. One call returns the project, its environments (each with `loginSaved`), their targets (`id`, `baseUrl`, `appTag`, `targetType`, and for web targets the latest `crawl`: when, pages, elements) and the project's applications. Use those ids for every later call; don't list anything else.
+- **`CHOOSE_PROJECT`:** show the `candidates` as a numbered list and ask. **Never pick one yourself.**
+- **`NOT_FOUND`:** offer *"N. A new app at <address>"*, which hands off to `project-setup`.
 
-- **The user didn't name an app:** show the whole list as above.
-- **The user named an app (by name or host) and exactly one matches:** don't ask. Say *"Toolshop web (`practicesoftwaretesting.com`)"* in one line and go straight to step 2, as if they had picked it from the list.
-- **Several match:** show only those, as the list. A shared or partial name is several matches: "Toolshop" when there are *Toolshop web* and *Toolshop (Angular)*. **Never pick one of them yourself**, even if one looks more likely.
-- **None match:** show the whole list, plus *"N. A new app at <address>"*, which hands off to `project-setup`.
+**The user named nothing:** call `list_applications()`. On a small instance it lists the apps; show those with a web target as **name**. On a large one it answers `TOO_MANY_TO_LIST`: then ask *"Which app do you want to test? Paste its address or its name."*, and call `get_working_context` with the answer.
 
-## 2. Project and environment
+**Never call `list_targets()` or `list_applications()` hoping for everything:** they refuse a whole large instance, and that is what they are meant to do.
 
-- **Project:** `list_application_projects(application)`. Confirm it if there's one; ask if there are several.
-- **Environment:** only environments with a web target for this app, taken from the step-1 targets. Show whether each has a login saved (`list_environment_credentials`). Confirm it if there's one; ask if there are several.
-- **No login saved** and the app needs one: offer *1. Add a login now (you give it; it's saved in ProofArc) 2. Only tests that don't need a login*.
+**Older ProofArc** (the server has no `get_working_context`): call `list_applications` and `list_targets(project=…)` once you know the project, and build the same picture from them.
 
-Then say in one line: *"Working on **app** (`host`), project **X**, environment **Y**, target `https://…`."* Use the real **names** (not ids): the project from `list_application_projects`, the environment from `list_environments`. Never call an environment a project.
+## 2. Confirm the environment and the login
+
+- **Environment:** only environments in the context that have a `WEB_APP` target. Confirm it if there's one; ask if there are several.
+- **No login saved** (`loginSaved: false`) and the app needs one: offer *1. Add a login now (you give it; it's saved in ProofArc) 2. Only tests that don't need a login*.
+
+Then say in one line: *"Working on **app** (`host`), project **X**, environment **Y**, target `https://…`."* Use the real **names** from the context (not ids). Never call an environment a project.
 
 ## 3. The crawl
 
-- `get_crawl_digest(target, level="index")` reads the stored crawl in under a second.
+- The target's `crawl` in the context says whether one exists and how big it is; `null` means never crawled. To read it: `get_crawl_digest(target, level="index")`, under a second.
 - **No crawl yet:** say so and offer *1. Crawl now (1–2 minutes) (recommended) 2. Describe what to test first*. Crawl with `crawl_by_target(target, mode="digest", max_depth=2, max_urls=40)`.
 - Once a crawl exists, call `advise_ui(target)` for the testability score.
 
