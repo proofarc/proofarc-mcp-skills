@@ -37,26 +37,29 @@ description: Use whenever the user asks to create, write, build or suggest UI / 
 
 ## 1. Which app, project and environment: one call
 
-**The user named an app, a project or an address:** call `get_working_context(application=…)`, `get_working_context(project=…)` or `get_working_context(url=…)`. One call returns the project, its environments (each with `loginSaved`), their targets (`id`, `baseUrl`, `appTag`, `targetType`, and for web targets the latest `crawl`: when, pages, elements) and the project's applications. Use those ids for every later call; don't list anything else.
+**The user named an app, a project or an address:** call `get_working_context(application=…)`, `get_working_context(project=…)` or `get_working_context(url=…)`. One call returns the project, its environments (each with `logins` and `defaultLogin`), their targets (`id`, `baseUrl`, `appTag`, `targetType`, and for web targets the latest `crawl`: when, pages, elements) and the project's applications. Use those ids for every later call; don't list anything else.
 - **`CHOOSE_PROJECT`:** show the `candidates` as a numbered list and ask. **Never pick one yourself.**
+- **`SHARED_TARGET`:** the address is in a shared environment every project can use. Ask which project the test is for, then call `get_working_context(project=…)`.
+- **Several `matchedTargets`:** the address is a target in more than one environment; ask which environment.
 - **`NOT_FOUND`:** offer *"N. A new app at <address>"*, which hands off to `project-setup`.
 
 **The user named nothing:** call `list_applications()`. On a small instance it lists the apps; show those with a web target as **name**. On a large one it answers `TOO_MANY_TO_LIST`: then ask *"Which app do you want to test? Paste its address or its name."*, and call `get_working_context` with the answer.
 
 **Never call `list_targets()` or `list_applications()` hoping for everything:** they refuse a whole large instance, and that is what they are meant to do.
 
-**Older ProofArc** (the server has no `get_working_context`): call `list_applications` and `list_targets(project=…)` once you know the project, and build the same picture from them.
+**Older ProofArc** (the server has no `get_working_context`): call `list_applications`, then `list_application_projects(application)`, `list_environments(project)` and `list_targets(environment)` for each environment, and build the same picture from them.
 
 ## 2. Confirm the environment and the login
 
 - **Environment:** only environments in the context that have a `WEB_APP` target. Confirm it if there's one; ask if there are several.
-- **No login saved** (`loginSaved: false`) and the app needs one: offer *1. Add a login now (you give it; it's saved in ProofArc) 2. Only tests that don't need a login*.
+- **Several logins and no default** (`logins` > 1, `defaultLogin: false`): ask which login the test uses, and pass its tag as `credential_tag`. Without it the run refuses.
+- **No login saved** (`logins: 0`) and the app needs one: offer *1. Add a login now (you give it; it's saved in ProofArc) 2. Only tests that don't need a login*.
 
 Then say in one line: *"Working on **app** (`host`), project **X**, environment **Y**, target `https://…`."* Use the real **names** from the context (not ids). Never call an environment a project.
 
 ## 3. The crawl
 
-- The target's `crawl` in the context says whether one exists and how big it is; `null` means never crawled. To read it: `get_crawl_digest(target, level="index")`, under a second.
+- The target's `crawl` in the context says whether one exists and how big it is; `null` means never crawled. `unavailable` means it could not be looked up: read `get_crawl_digest` before crawling again. To read it: `get_crawl_digest(target, level="index")`, under a second.
 - **No crawl yet:** say so and offer *1. Crawl now (1–2 minutes) (recommended) 2. Describe what to test first*. Crawl with `crawl_by_target(target, mode="digest", max_depth=2, max_urls=40)`.
 - Once a crawl exists, call `advise_ui(target)` for the testability score.
 
