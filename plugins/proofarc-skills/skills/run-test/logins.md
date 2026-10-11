@@ -2,7 +2,7 @@
 
 ## The rule, same for every run type
 
-1. the login named on the run: `credential_tag=` on `execute_scenario`, `run_ui_test`, `run_ui_test_suite`, `run_mobile_test`, `run_canary_performance`
+1. the login named on the run: `credential_tag=` on `execute_api_scenario`, `run_ui_test`, `run_ui_test_suite`, `run_mobile_test`, `run_canary_performance`
 2. the login saved on the test: an API scenario's `credentialTag` (YAML `credentialTag: <tag>`), a UI test's `credential_tag`, a mobile app's `login_config.credentialTag`
 3. the login set on the target: `set_target_auth(target, auth_config={"authType": "UI_LOGIN", "credentialTag": "<tag>"})`
 4. the environment default (`is_default=true`)
@@ -27,7 +27,7 @@ A public app, `allow_unauthenticated=true`, or a UI/mobile test that never types
 
 ## Running without a login
 
-`execute_scenario(..., allow_unauthenticated=true)`:
+`execute_api_scenario(..., allow_unauthenticated=true)`:
 - sends no `Authorization` header
 - still fills `{{username}}` in step bodies from the login that would apply
 - leaves the execution's `credentialTag` null
