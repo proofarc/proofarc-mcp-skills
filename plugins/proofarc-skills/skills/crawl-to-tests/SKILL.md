@@ -33,7 +33,7 @@ description: Use whenever the user asks to create, write, build or suggest UI / 
 8. **Logins are `{{username}}`/`{{password}}`** from the environment's saved login. Never invent or type a password.
 9. **Playwright only, for now.** Every UI run uses `drivers=["PLAYWRIGHT"]`, and every UI test is saved with `driver="PLAYWRIGHT"`. Never run or save a UI test for `WEBDRIVER`, even if the user asks: say *"Web tests run on Playwright for now; WebDriver isn't supported yet."* and run it on Playwright. The two engines don't behave the same yet (`:has-text()` fails on WebDriver; a page that never loads passes there).
 
-`target` always means the target's **id** from `get_working_context` (or `list_targets`). Details, examples and commands: `reference.md` in this skill's folder. Read it once before drafting the first test.
+`target` always means the target's **id** from `get_working_context` (or `list_targets`). How to write a test (examples, selectors, actions): `reference.md` in this skill's folder. Read it once before drafting the first test.
 
 ## 1. Which app, project and environment: one call
 
@@ -70,7 +70,7 @@ Then say in one line: *"Working on **app** (`host`), project **X**, environment 
 - **Up to 6 suggested tests with no overlap.** All "page opens" checks go into **one smoke test**, which opens **each main page** (home, each category, contact, login…) and for each one waits for something specific to that page, then checks its title with `VALIDATE_TITLE`. The site header or menu proves nothing, because it's on every page. A journey is one test. **Each item names the check it ends with** (*"→ cart shows 1"*). Each item says what it changes (*nothing*, *this browser's cart*, *sends data*). Never offer purchases, deletions or sign-ups unless asked. Edge cases only where the crawl shows the input exists.
 - **Close with:** *"Pick tests (`1,3`), `all`, or describe your own scenario."*
 
-The user may also type `find <text>`, `show <page>`, `scenario <words>`, `where` or `done`. See `reference.md`, Commands.
+The user may also type `find <text>`, `show <page>`, `scenario <words>`, `where` or `done`. See `commands.md`, read only when the user types one.
 
 ## 5. Build each chosen test
 
@@ -84,7 +84,7 @@ The user may also type `find <text>`, `show <page>`, `scenario <words>`, `where`
 6. The deliberately broken run shows in the run list as a failure. Name it so nobody mistakes it for a real one: *"run 875 failed on purpose (expected 'Circular Saw X')"*.
 7. Report in one line that says **both** results: *✓ Search finds Circular Saw: passed, and fails when the expected name is wrong.* A report that only says "passed" is incomplete.
 
-**If a run fails:** read the failing step's **screenshot** first. Two common causes: the element is in the crawl but hidden when the page loads (the crawl has no visibility flag), or a dialog or tip is on top of it (close it with Cancel or X, never Skip or Save). If it's your mistake (a missing wait, a wrong parameter, a selector not from the crawl, a hidden element, an overlay), fix it and re-run **without asking**. Ask only when the site itself behaves unexpectedly: *"1. The site is wrong, keep it as a finding 2. I misread the page"*. Never loosen a check to make it pass.
+**If a run fails:** read the failing step's **screenshot** first (`errors.md` has the common errors and what to do). Two common causes: the element is in the crawl but hidden when the page loads (the crawl has no visibility flag), or a dialog or tip is on top of it (close it with Cancel or X, never Skip or Save). If it's your mistake (a missing wait, a wrong parameter, a selector not from the crawl, a hidden element, an overlay), fix it and re-run **without asking**. Ask only when the site itself behaves unexpectedly: *"1. The site is wrong, keep it as a finding 2. I misread the page"*. Never loosen a check to make it pass.
 
 ## 6. Done
 
