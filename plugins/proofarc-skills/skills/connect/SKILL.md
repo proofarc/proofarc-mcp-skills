@@ -5,7 +5,7 @@ description: Connect Claude Code to a ProofArc instance over MCP, or reconnect w
 
 # Connect to ProofArc
 
-ProofArc's MCP server is at `https://<your-instance>/mcp`. It accepts a login token in the `Authorization` header. The token comes from your ProofArc username and password and is valid for up to 30 days. It is stored in plain text in Claude Code's config (`~/.claude.json`); the password is not stored.
+ProofArc's MCP server is at `https://<your-instance>/mcp`. For web UI tests only, `https://<your-instance>/mcp/ui` serves just the tools they need (`/mcp/api` and `/mcp/performance` likewise), so each turn carries far less; `/mcp` keeps every tool. It accepts a login token in the `Authorization` header. The token comes from your ProofArc username and password and is valid for up to 30 days. It is stored in plain text in Claude Code's config (`~/.claude.json`); the password is not stored.
 
 ## Check first
 

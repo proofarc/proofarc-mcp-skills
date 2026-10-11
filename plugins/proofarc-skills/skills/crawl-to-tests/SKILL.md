@@ -33,7 +33,7 @@ description: Use whenever the user asks to create, write, build or suggest UI / 
 8. **Logins are `{{username}}`/`{{password}}`** from the environment's saved login. Never invent or type a password.
 9. **Playwright only, for now.** Every UI run uses `drivers=["PLAYWRIGHT"]`, and every UI test is saved with `driver="PLAYWRIGHT"`. Never run or save a UI test for `WEBDRIVER`, even if the user asks: say *"Web tests run on Playwright for now; WebDriver isn't supported yet."* and run it on Playwright. The two engines don't behave the same yet (`:has-text()` fails on WebDriver; a page that never loads passes there).
 
-`target` always means the target's **id** from `get_working_context` (or `list_targets`). How to write a test (examples, selectors, actions): `reference.md` in this skill's folder. Read it once before drafting the first test.
+`target` always means the target's **id** from `get_working_context` (or `list_targets`). How to write a test (examples, selectors, actions): `reference.md` in this skill's folder; more detail for steps 1–4 is in `steps.md`. Read it once before drafting the first test.
 
 ## 1. Which app, project and environment: one call
 
