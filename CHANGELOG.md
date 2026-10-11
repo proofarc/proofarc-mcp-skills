@@ -1,5 +1,20 @@
 # Changelog — proofarc-skills
 
+## 0.3.9 — 2026-10-11
+- **crawl-to-tests loads 9 tools up front instead of 23** (#634). A loaded tool is paid for on every later turn of the session. The preload is now `get_working_context`, `get_tool_gotchas`, `find_ui_tests`, `get_crawl_digest`, `validate_ui_test_yaml`, `create_ui_test_from_yaml`, `run_ui_test`, `update_ui_test_from_yaml`, `get_execution_status`, written out as one literal `select:` string with the server prefix on every name. Every other tool is loaded by name at the step that uses it: picking an app with nothing named, older servers (all four list tools), adding a login (with `crawl_by_target` for the re-crawl), the first crawl, testability, run-all, one element's detail and the full action list. A rule says how to load one, and that a tool not loaded cannot be called.
+- **Several servers:** `get_working_context` is loaded on each server before it is called there (it was called before anything was loaded).
+- **Wait times.** Rule 2 and `reference.md` said `config.timeout: 15` means 15 ms, from a 0.3.5 measurement. Servers from v4.8.20 read a number of 600 or less as seconds, on a step and in `config:` alike. The skill keeps writing milliseconds.
+
+## 0.3.8 — 2026-10-11
+- API-test tools by their new names (`execute_api_scenario`, …) — every server has them (#628).
+
+## 0.3.7 — 2026-10-10
+- crawl-to-tests starts with `get_working_context`, never an unfiltered list (#620).
+- crawl-to-tests reference split: what a draft needs is read once; commands, errors and step detail only when needed (#620).
+- crawl-to-tests points at `steps.md`; `connect` mentions `/mcp/ui`, `/mcp/api` and `/mcp/performance` (#617).
+- crawl-to-tests: shared addresses, several logins, an unreadable crawl, and a fallback older servers can run.
+- crawl-to-tests: several matched targets — ask which target.
+
 ## 0.3.6 — 2026-10-05
 - **Web UI tests run on Playwright only, for now.** `crawl-to-tests` (new Test rule 9) and `run-test` always run with `drivers=["PLAYWRIGHT"]` and save tests with `driver="PLAYWRIGHT"`, and refuse WebDriver even when asked, explaining why. The engines don't behave the same yet: `:has-text()` is rejected on WebDriver, and a page load that times out is reported as passed there. `run_ui_test_suite` gets `drivers=["PLAYWRIGHT"]`; `run_by_tag` (no engine parameter) is used only when every UI test it queues is saved as Playwright.
 

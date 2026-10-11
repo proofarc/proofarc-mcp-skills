@@ -3,7 +3,7 @@
 ### Step 1: app by address or run link
 - When the user pastes an address, match it against the targets' `baseUrl` by host, ignoring `www.` and any trailing `/`. If several apps match, show only those.
 - **A run link `…/scans/<n>`:** call `get_execution_status(execution_id="<n>", kind="ui_job")` and use `items[0].target`. Send the number **as a string**.
-- **An ad-hoc crawl** (not made from a target) can be read with `get_crawl_results(job_id)`, but it doesn't say where tests should run. Use it only to understand the site.
+- **An ad-hoc crawl** (not made from a target) can be read with `get_crawl_results(job_id)` (load it first), but it doesn't say where tests should run. Use it only to understand the site.
 - A web target with no application is listed under its address, marked *"not linked to an application"*.
 
 ### Step 2: adding a login
@@ -11,7 +11,7 @@ Follow `find_playbooks("authenticated web UI")`:
 1. The user gives the username and password.
 2. Save them with `add_environment_credential(environment, tag, username, password)`.
 3. Set the target to sign in with `set_target_auth(target, auth_config={"authType": "UI_LOGIN", "credentialTag": "<tag>"})`.
-4. Crawl. Check that the pages found are app routes, not just `/login`.
+4. Crawl again with `crawl_by_target(target, mode="digest")` (loaded together with the login tools), so the crawl signs in. Check that the pages found are app routes, not just `/login`.
 
 ### Step 3: crawl
 - `crawl_by_target` waits until the crawl finishes (1–2 minutes). If it returns `timedOut`, read `get_crawl_digest` again in a minute.

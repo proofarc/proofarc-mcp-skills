@@ -71,7 +71,7 @@ The cart link `a[href="/checkout"]` isn't in the crawl: it only appears **after*
 
 **Parameters each action really takes** (the validator refuses the wrong ones):
 - `NAVIGATE_TO` takes `url:`.
-- **Wait time: set it once.** `config:` → `timeout: 15000` (**milliseconds**: `config.timeout: 15` would mean 15 ms) at the top of the test applies to every wait and navigation. Put `timeout:` on a single step only to override it there. A top-level `timeout:` or `defaultTimeout:` outside `config:` is ignored (the wait falls back to 30 s), and so is a wait time given as `value:`. On a **step** `timeout:` only, 600 or less is read as seconds (`timeout: 5` = 5 s); `config.timeout` is always milliseconds.
+- **Wait time: set it once.** `config:` → `timeout: 15000` (**milliseconds** — write milliseconds always) at the top of the test applies to every wait and navigation. Put `timeout:` on a single step only to override it there. A top-level `timeout:` or `defaultTimeout:` outside `config:` is ignored (the wait falls back to 30 s), and so is a wait time given as `value:`. Servers from v4.8.20 read a number of 600 or less as seconds and a bigger one as milliseconds, on a step and in `config:` alike; always write milliseconds.
 - `VALIDATE_TITLE`, `VALIDATE_TEXT` and `WAIT_FOR_TEXT` take `expectedText:`. `value:` is only for typing (`SEND_KEYS`).
 - **Dropdowns (`<select>`) use `SELECT_BY_TEXT`.** Set `value:` to the option's visible text **copied character for character from the crawl**. Toolshop's option is `"Price (Low - High)"` with a plain hyphen; a dash (`–`) or extra spaces won't match, and the step times out.
   - `SEND_KEYS` fails on a select.
@@ -79,8 +79,8 @@ The cart link `a[href="/checkout"]` isn't in the crawl: it only appears **after*
   - If the crawl doesn't show the full option text, ask the user for it. Don't fall back to `SELECT_BY_INDEX`: option order changes, and the test would quietly pick something else.
   - **Custom dropdowns**, built from `div`s rather than a `<select>`, don't work with the `SELECT_*` actions. `CLICK` the control, then `CLICK` the option by its text.
 - **Wait before checking a title.** Single-page apps set the page title after the page loads, so `VALIDATE_TITLE` straight after `NAVIGATE_TO` can read the generic title. Wait for an element on that page first, as in the example. The same goes for validation messages: `WAIT_FOR_TEXT` before asserting them.
-- **Other actions** (hover, double-click, read a value, check an attribute, frames, alerts, uploads): `list_ui_test_actions` gives each action's required parameters. Check it before using an action not listed here.
-- **More detail on one element**, such as its alternate selectors or xpath: use `get_crawl_results(job_id, element=<selector>)` rather than re-crawling at a higher level.
+- **Other actions** (hover, double-click, read a value, check an attribute, frames, alerts, uploads): load and call `list_ui_test_actions`; it gives each action's required parameters. Check it before using an action not listed here.
+- **More detail on one element**, such as its alternate selectors or xpath: load and use `get_crawl_results(job_id, element=<selector>)` rather than re-crawling at a higher level.
 - **Wait for something on the page you navigated to**, such as its form, list or heading from the crawl, not the site's header or menu. A header element is on every page, so waiting for it proves nothing.
 
 Example (validated):
@@ -110,7 +110,7 @@ steps:
 
 ## Common actions and their parameters
 
-Call `list_ui_test_actions` for the full, current list.
+Load and call `list_ui_test_actions` for the full, current list.
 
 | Action | Parameters |
 |---|---|

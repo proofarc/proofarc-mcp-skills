@@ -8,7 +8,7 @@ description: Use whenever the user asks to create, write, build or suggest UI / 
 ## FIRST: do exactly this, in this order
 
 1. **Find the ProofArc servers** in your tool list: tool names `mcp__<server>__…` where `<server>` contains `proofarc` (e.g. `proofarc-staging`, `proofarc-prod`). Ignore `claude.ai proofarc`.
-2. **More than one?** If the user named an app, project or address, you may call `get_working_context` with it on each server **yourself** (`list_applications` on a server that has no `get_working_context`): one direct tool call per server (in parallel is fine), never through `Agent`/`Task`, `Bash` or `echo`. If exactly one server has it, use it and say *"On proofarc-…:"*. Otherwise your **first reply is only this question**, with no other tool calls before it:
+2. **More than one?** If the user named an app, project or address, you may load `get_working_context` on each server (`select:mcp__<server>__get_working_context`, one per server) and call it **yourself** (load and call `list_applications` on a server that has no `get_working_context`): one direct tool call per server (in parallel is fine), never through `Agent`/`Task`, `Bash` or `echo`. If exactly one server has it, use it and say *"On proofarc-…:"*. Otherwise your **first reply is only this question**, with no other tool calls before it:
    > Which ProofArc do you want to work in?
    > 1. **proofarc-staging**
    > 2. **proofarc-prod**
@@ -16,7 +16,9 @@ description: Use whenever the user asks to create, write, build or suggest UI / 
    Use the real names you found (the ones above are only examples), then wait. `AskUserQuestion` is fine for this question. **One server:** use it without asking. **None:** follow the `connect` skill. **Configured but failed to connect:** ask the user to run `/mcp` → Reconnect.
 
    **One server failing is only that server.** An error or 503 from one (or from `claude.ai proofarc`) says nothing about the others: try each ProofArc server's tools before saying anything is unavailable, and never conclude "ProofArc is down" from one failure.
-3. **Load that server's tools with one `ToolSearch`:** `select:` followed by `mcp__<server>__` plus each of `get_working_context`, `list_applications`, `list_application_projects`, `list_environments`, `list_targets`, `list_environment_credentials`, `get_crawl_digest`, `crawl_by_target`, `advise_ui`, `validate_ui_test_yaml`, `create_ui_test_from_yaml`, `update_ui_test_from_yaml`, `run_ui_test`, `get_execution_status`, `find_ui_tests`, `get_ui_test`, `get_crawl_results`, `list_ui_test_actions`, `find_playbooks`, `add_environment_credential`, `set_target_auth`, `run_by_tag`, `get_tool_gotchas`.
+3. **Load that server's tools with one `ToolSearch`**, written out exactly like this with your server's name in place of `<server>` on **every** name:
+   `select:mcp__<server>__get_working_context,mcp__<server>__get_tool_gotchas,mcp__<server>__find_ui_tests,mcp__<server>__get_crawl_digest,mcp__<server>__validate_ui_test_yaml,mcp__<server>__create_ui_test_from_yaml,mcp__<server>__run_ui_test,mcp__<server>__update_ui_test_from_yaml,mcp__<server>__get_execution_status`
+   Those nine are what building a test uses. **To load any other tool:** `ToolSearch` with `select:mcp__<server>__<tool>`; several go comma-separated, each with the full `mcp__<server>__` prefix. Load a tool the first time a step needs it, never up front: each loaded tool costs on every later turn. A tool that was not loaded cannot be called.
 4. **Call them as tools, yourself.** Never reach ProofArc through Bash, curl, Python or a sub-agent (`Agent`/`Task`): a sub-agent may not have these tools, and its failure is not a lost connection. Never ask the user how to call tools. Don't use Bash to print status messages either; just write the text. A result too large to show is saved to a file: read it with `Read` (`offset`/`limit`), or ask the tool for less (`page=`, `text=`, `type=`), not with Bash.
 
 **Every reply ends with numbered choices.** Ask one thing per reply and mark a sensible default *(recommended)*.
@@ -24,7 +26,7 @@ description: Use whenever the user asks to create, write, build or suggest UI / 
 ## Test rules (check every plan against these yourself; don't ask the user)
 
 1. **No record ids** in a URL or selector (`/product/01M3…`). Reach records through the UI from a real entry point (home, category, search) and click them **by visible name** (`a:has-text("Combination Pliers")`). Only fixed routes (`/contact`, `/category/hand-tools`) may be opened directly.
-2. **Wait for that page's content before every interaction:** `WAIT_FOR_VISIBLE` on a form, list or heading of that page. When the page loads data, wait for the data itself (a list row, a known item), not a search box or toolbar that appears before it. Set the wait time **once** in a top-level `config:` block containing `timeout: 15000` (milliseconds; `15` would mean 15 ms), and put `timeout:` on a step only to override it. A top-level `timeout:` or `defaultTimeout:` (outside `config:`) is ignored, and the wait falls back to 30 s.
+2. **Wait for that page's content before every interaction:** `WAIT_FOR_VISIBLE` on a form, list or heading of that page. When the page loads data, wait for the data itself (a list row, a known item), not a search box or toolbar that appears before it. Set the wait time **once** in a top-level `config:` block containing `timeout: 15000` (milliseconds; servers from v4.8.20 read a number of 600 or less as seconds; always write milliseconds), and put `timeout:` on a step only to override it. A top-level `timeout:` or `defaultTimeout:` (outside `config:`) is ignored, and the wait falls back to 30 s.
 3. **`{{baseUrl}}/path`**, with the application's `appTag:` at the top. Never the site's URL.
 4. **Parameters:** `NAVIGATE_TO` takes `url:`. `VALIDATE_*` and `WAIT_FOR_TEXT` take `expectedText:`. `value:` only for `SEND_KEYS` and `SELECT_BY_TEXT`.
 5. **`CLEAR`, then `SEND_KEYS`.** Dropdowns use `SELECT_BY_TEXT` with the option text exactly as in the crawl.
@@ -43,25 +45,25 @@ description: Use whenever the user asks to create, write, build or suggest UI / 
 - **Several `matchedTargets`:** more than one target has that address (the context lists each with its environment); ask which one.
 - **`NOT_FOUND`:** offer *"N. A new app at <address>"*, which hands off to `project-setup`.
 
-**The user named nothing:** call `list_applications()`. On a small instance it lists the apps; show those with a web target as **name**. On a large one it answers `TOO_MANY_TO_LIST`: then ask *"Which app do you want to test? Paste its address or its name."*, and call `get_working_context` with the answer.
+**The user named nothing:** load and call `list_applications()`. On a small instance it lists the apps; show those with a web target as **name**. On a large one it answers `TOO_MANY_TO_LIST`: then ask *"Which app do you want to test? Paste its address or its name."*, and call `get_working_context` with the answer.
 
 **Never call `list_targets()` or `list_applications()` hoping for everything:** they refuse a whole large instance, and that is what they are meant to do.
 
-**Older ProofArc** (the server has no `get_working_context`): call `list_applications`, then `list_application_projects(application)`, `list_environments(project)` and `list_targets(environment)` for each environment, and build the same picture from them.
+**Older ProofArc** (the server has no `get_working_context`): load all four (`list_applications`, `list_application_projects`, `list_environments`, `list_targets`), then call `list_applications`, `list_application_projects(application)`, `list_environments(project)` and `list_targets(environment)` for each environment, and build the same picture from them.
 
 ## 2. Confirm the environment and the login
 
 - **Environment:** only environments in the context that have a `WEB_APP` target. Confirm it if there's one; ask if there are several.
 - **Several logins and no default** (`logins` > 1, `defaultLogin: false`): ask which login the test uses, and pass its tag as `credential_tag`. Without it the run refuses.
-- **No login saved** (`logins: 0`) and the app needs one: offer *1. Add a login now (you give it; it's saved in ProofArc) 2. Only tests that don't need a login*.
+- **No login saved** (`logins: 0`) and the app needs one: offer *1. Add a login now (you give it; it's saved in ProofArc) 2. Only tests that don't need a login*. For 1, load `find_playbooks`, `add_environment_credential`, `set_target_auth` and `crawl_by_target` and follow `steps.md`.
 
 Then say in one line: *"Working on **app** (`host`), project **X**, environment **Y**, target `https://…`."* Use the real **names** from the context (not ids). Never call an environment a project.
 
 ## 3. The crawl
 
 - The target's `crawl` in the context says whether one exists and how big it is; `null` means never crawled. `unavailable` means it could not be looked up: read `get_crawl_digest` before crawling again. To read it: `get_crawl_digest(target, level="index")`, under a second.
-- **No crawl yet:** say so and offer *1. Crawl now (1–2 minutes) (recommended) 2. Describe what to test first*. Crawl with `crawl_by_target(target, mode="digest", max_depth=2, max_urls=40)`.
-- Once a crawl exists, call `advise_ui(target)` for the testability score.
+- **No crawl yet:** say so and offer *1. Crawl now (1–2 minutes) (recommended) 2. Describe what to test first*. Load `crawl_by_target` and crawl with `crawl_by_target(target, mode="digest", max_depth=2, max_urls=40)`.
+- Once a crawl exists, load and call `advise_ui(target)` for the testability score.
 
 ## 4. Summary and suggestions (one screen)
 
@@ -88,4 +90,4 @@ The user may also type `find <text>`, `show <page>`, `scenario <words>`, `where`
 
 ## 6. Done
 
-Offer the remaining tests, `run all` (`run_by_tag(tags=["from-crawl"], project, environment, kinds=["ui"])`: it uses each test's saved driver, so first check every test is saved as PLAYWRIGHT with `get_ui_test`; otherwise run them one by one with `run_ui_test(..., drivers=["PLAYWRIGHT"])`), or `done`. Finish with one line: the tests created and passed, the project, the environment, and the tag `from-crawl`.
+Offer the remaining tests, `run all` (load `run_by_tag` and `get_ui_test`; `run_by_tag(tags=["from-crawl"], project, environment, kinds=["ui"])`: it uses each test's saved driver, so first check every test is saved as PLAYWRIGHT with `get_ui_test`; otherwise run them one by one with `run_ui_test(..., drivers=["PLAYWRIGHT"])`), or `done`. Finish with one line: the tests created and passed, the project, the environment, and the tag `from-crawl`.
